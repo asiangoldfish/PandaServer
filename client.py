@@ -13,7 +13,7 @@ except socket.error as err:
     print(f"Socket creation failed with error {err}")
 
 # Default host and port for socket
-HOST = "192.168.1.170"
+HOST = "raspberrypi"
 PORT = 8000
 
 # Connect to server
@@ -38,7 +38,13 @@ while True:
     new_msg = True
 
     while True:
-        server_msg = c.recv(16)
+        # Look for keyboard interrupts
+        try:
+            server_msg = c.recv(16)
+        except KeyboardInterrupt:
+            print("Successfully left the program")
+            c.close()
+            exit()
 
         if new_msg and server_msg != b'':
             print(f"new message length: {server_msg[:HEADERSIZE]}")
@@ -50,6 +56,10 @@ while True:
         if len(full_msg) - HEADERSIZE == msglen:
             print("full msg received")
             print(full_msg[HEADERSIZE:])
+
+            # Quit program
+            print("Press CTRL+C to cancel")
+
             new_msg = True
             full_msg = ""
 
