@@ -50,7 +50,16 @@ HEADERSIZE = 10
 # Create IPv4 TCP socket if permission is there
 server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
+# Enables reuse of socket
+old_state = server_socket.getsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR)
+print("Old socket state: %s" % old_state)
+
 print("\nSocket successfully created")
+
+# Enable the SO_REUSE ADDR option
+server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+new_state = server_socket.getsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR)
+print("New sock state: %s" % new_state)
 
 # Bind socket to host and port
 try:
@@ -119,6 +128,8 @@ while True:
     except KeyboardInterrupt:
         print("\nSuccessfully terminated the program.")
         exit()
+    except socket.error as msg:
+        print("%s" % (msg,))
 
     # HTTP Requests
     # Receive request from client.
@@ -151,9 +162,9 @@ while True:
             mimetype = "text/css"
         else:
             mimetype = "text/html"
-        
+
         header += "Content-Type: %s\n\n" % mimetype  # + "<strong>\n\n</strong"
-    
+
     except Exception as e:
         # If page is not found
         header = "HTTP/1.1 404 Not Found \n\n"
@@ -165,31 +176,11 @@ while True:
                             </center>\
                         </body>\
                     </html>".encode("utf-8")
-    
+
     # Respond to client and close socket
     final_response = header.encode("utf-8")
     final_response += response
     client_socket.send(final_response)
-    client_socket.close()
-
-
-    #print("Client request: %s" % (file_name))
-
-    
-    """# Send HTML to client
-    client_socket.send("HTTP/1.0 200 OK\n".encode())
-    client_socket.send("Content-Type: text/html\n".encode())
-    client_socket.send("\n".encode())
-    client_socket.send(""#"
-    <html>
-    <body>
-    <h1>Hello, world!</h1> this is my server!
-    </body>
-    </html>
-    ""#"
-    .encode())"""
-
-    #client_socket.send("Hello, world!".encode())
 
     # Close connection
     client_socket.close()
