@@ -6,7 +6,7 @@ import os
 
 from mysql.connector import connect, Error
 
-
+""
 # Connect to MySQL database only if login credentials are valid
 print("Running system checks...")
 print("Logging into MySQL...")
@@ -39,8 +39,10 @@ except Error as error:
 
 print("\nSystem checks complete!")
 
+# CONSTANTS
 HOST = ""  # Listens to requests coming from the network
 PORT = 8000
+HEADERSIZE = 10
 
 # Create IPv4 TCP socket if permission is there
 server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -57,6 +59,10 @@ except PermissionError as e:
         exit()
     else:
         print("Something went wrong when binding socket to port and host")
+        exit()
+except OSError as e:
+    if e.errno == errno.EADDRINUSE:
+        print(e)
         exit()
 
 print("Binding success")
@@ -93,7 +99,7 @@ with mydb.cursor() as cursor:
         cursor.fetchall()
         cursor.execute(insert_panda_species)
         print(" complete!")
-    
+
     # Print datatable
     cursor.execute(select_panda_species)
     cursor.fetchall()
@@ -111,9 +117,17 @@ while True:
     except KeyboardInterrupt:
         print("\nSuccessfully exit the program.")
         exit()
+    print(f"Connection from {address} has been established!")
+
+    # Header to tell client how long our message is
+    msg = "Welcome to the server!"
+    msg = f"{len(msg):<{HEADERSIZE}}" + msg
 
     # Confirm connection
-    client_socket.send("Successfully connected to the server".encode())
+    client_socket.send(bytes(msg, "utf-8"))
 
     # Close connection()
+
+    # client_socket.close()
     client_socket.close()
+    print(f"Connection to {address} has been closed")

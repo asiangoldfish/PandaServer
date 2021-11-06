@@ -1,9 +1,14 @@
 import socket
-import sys
+from sys import exit
+import errno
+
+# CONSTANTS
+HEADERSIZE = 10
+
 
 try:
     c = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    print("Socket successfuly created")
+    # print("Socket successfuly created")
 except socket.error as err:
     print(f"Socket creation failed with error {err}")
 
@@ -49,7 +54,7 @@ if HOST is None:
 try:
     print("Connecting to %s..." % HOST)
     c.connect((HOST, PORT))
-    print("Successfully connected to server.")
+    # print("Successfully connected to server.")
 except ConnectionRefusedError:
     print("Connection refused")
 except socket.gaierror:
