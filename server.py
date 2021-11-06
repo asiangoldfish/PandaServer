@@ -29,7 +29,7 @@ try:
         password="test_user123",
         database="panda",
     )
-    print("\nSuccessfully logged into database")
+    print("\nSuccessfully logged into MYSQL!")
     print("Detected unsafe login. Please only use this method for development.")
 
 # Quit program if wrong login credentials
@@ -104,9 +104,13 @@ print(f"Socket is listening on port {PORT}...")
 
 # Main loop. Keeps the serer running
 while True:
-    # Accept connections from outside
-    client_socket, address = server_socket.accept()
-    print(f"Received connection from {address}")
+    # Accept connections from outside. Program is terminated with CTRL+C
+    try:
+        client_socket, address = server_socket.accept()
+        print(f"Received connection from {address}")
+    except KeyboardInterrupt:
+        print("\nSuccessfully exit the program.")
+        exit()
 
     # Confirm connection
     client_socket.send("Successfully connected to the server".encode())

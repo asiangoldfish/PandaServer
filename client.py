@@ -7,13 +7,51 @@ try:
 except socket.error as err:
     print(f"Socket creation failed with error {err}")
 
+# DEVELOPMENT ONLY
+# Please change this code block and for the variable HOST before deployment
+HOST = ""
+while True:
+    try:
+        print("""
+        Press 1 to connect to localhost
+        Press 2 to connect to 192.168.1.170
+        Press 3 to connect to raspberrypi
+        Press 4 to connect to raspberrypi.local
+        Press CTRL + C to cancel and exit the program.
+        \nYour selection is : """, end="")
+        prompt_host = input()
+
+    except KeyboardInterrupt:
+        print("\nSuccessfully exit the program!")
+        exit()
+    else:
+        prompt_switcher = {
+            "1": "localhost",
+            "2": "192.168.1.170",
+            "3": "raspberrypi",
+            "4": "raspberrypi.local",
+        }
+        break
+    
+    
+        
+
 # Default host and port for socket
-HOST = "192.168.1.170"
+HOST = prompt_switcher.get(prompt_host)
 PORT = 8000
+
+# Checks if HOST is valid
+if HOST is None:
+    print("Please select a valid host.")
+    exit()
 
 # Connect to server
 try:
+    print("Connecting to %s..." % HOST)
     c.connect((HOST, PORT))
     print("Successfully connected to server.")
 except ConnectionRefusedError:
-    print("[ERRNO 111] Connection refused")
+    print("Connection refused")
+except socket.gaierror:
+    print("Cannot find host. Host is invalid or not available.")
+
