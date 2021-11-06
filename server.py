@@ -4,9 +4,12 @@ from sys import exit
 import errno
 import os
 
+# Used for handling Python objects in bytes
+import pickle
+
 from mysql.connector import connect, Error
 
-""
+
 # Connect to MySQL database only if login credentials are valid
 print("Running system checks...")
 print("Logging into MySQL...")
@@ -41,7 +44,7 @@ print("\nSystem checks complete!")
 
 # CONSTANTS
 HOST = ""  # Listens to requests coming from the network
-PORT = 8000
+PORT = int(input("Enter port number: "))
 HEADERSIZE = 10
 
 # Create IPv4 TCP socket if permission is there
@@ -61,9 +64,8 @@ except PermissionError as e:
         print("Something went wrong when binding socket to port and host")
         exit()
 except OSError as e:
-    if e.errno == errno.EADDRINUSE:
-        print(e)
-        exit()
+    print("%s. Please change the port." % e)
+    exit()
 
 print("Binding success")
 
@@ -113,21 +115,81 @@ while True:
     # Accept connections from outside. Program is terminated with CTRL+C
     try:
         client_socket, address = server_socket.accept()
-        print(f"Received connection from {address}")
+        #print(f"\nReceived connection from {address}", end="\n\n")
     except KeyboardInterrupt:
-        print("\nSuccessfully exit the program.")
+        print("\nSuccessfully terminated the program.")
         exit()
-    print(f"Connection from {address} has been established!")
 
-    # Header to tell client how long our message is
-    msg = "Welcome to the server!"
-    msg = f"{len(msg):<{HEADERSIZE}}" + msg
+    # HTTP Requests
+    # Receive request from client.
+    client_request = client_socket.recv(1024).decode("utf-8")
+    request_string = client_request.split(" ")  # Split request from client
 
-    # Confirm connection
-    client_socket.send(bytes(msg, "utf-8"))
+    # First element is the request method
+    # Second element is the requested file path
+    request_method = request_string[0]
+    request_file = request_string[1]
 
-    # Close connection()
+    # Split requested file from database queries
+    file_name = request_file.split("?")[0]
+    file_name = file_name.lstrip("/")
+    # Return index.html if no files were requested
+    if file_name == "":
+        file_name = "index.html"
+    # Respond with the requested file. Catch error if file non-existent
+    try:
+        file = open("%s" % (file_name), 'rb')  # 'rb' = read binary
+        response = response = file.read()
+        file.close()
 
-    # client_socket.close()
+        # Create header for server's response to client
+        header = "HTTP/1.1 200 OK\n"
+
+        if file_name.endswith(".jpg"):
+            mimetype = "image/jpg"
+        elif file_name.endswith(".css"):
+            mimetype = "text/css"
+        else:
+            mimetype = "text/html"
+        
+        header += "Content-Type: %s\n\n" % mimetype  # + "<strong>\n\n</strong"
+    
+    except Exception as e:
+        # If page is not found
+        header = "HTTP/1.1 404 Not Found \n\n"
+        response = "<html>\
+                        <body>\
+                            <center>\
+                            <h3>Error 404: File not found</h3>\
+                            <p>Python HTTP Server<p>\
+                            </center>\
+                        </body>\
+                    </html>".encode("utf-8")
+    
+    # Respond to client and close socket
+    final_response = header.encode("utf-8")
+    final_response += response
+    client_socket.send(final_response)
     client_socket.close()
-    print(f"Connection to {address} has been closed")
+
+
+    #print("Client request: %s" % (file_name))
+
+    
+    """# Send HTML to client
+    client_socket.send("HTTP/1.0 200 OK\n".encode())
+    client_socket.send("Content-Type: text/html\n".encode())
+    client_socket.send("\n".encode())
+    client_socket.send(""#"
+    <html>
+    <body>
+    <h1>Hello, world!</h1> this is my server!
+    </body>
+    </html>
+    ""#"
+    .encode())"""
+
+    #client_socket.send("Hello, world!".encode())
+
+    # Close connection
+    client_socket.close()
