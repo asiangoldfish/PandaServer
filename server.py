@@ -6,25 +6,45 @@ import os
 
 # Used for handling Python objects in bytes
 import pickle
+from typing import Type
 
 from mysql.connector import connect, Error
 
+
+class SystemCheck:
+    """
+    Run system check to make sure there are no errors upon running the server. Provides methods to enable
+    or disable use of database.
+    """
+
+    def __init__(self):
+        self.enable_db = False
+
+    def set_db(self, switch: bool):
+        """
+        Choose between enabling or disabling the use of database. When enabled, server admin is prompted
+        with login.
+
+        Args:
+        -----
+            switch (bool): Enable or disable use of database
+        """
+        # Raise error if not is not passed by programmer
+        if not isinstance(switch, bool):
+            raise TypeError(
+                "Unable to activate or deactivate database. Value must be bool, not %s." % str(type(switch)))
+
+    def run_system_check(self):
+        self. self_enable_db()
+
+
+syschk = SystemCheck()
+syschk.set_db(True)
 
 # Connect to MySQL database only if login credentials are valid
 print("Running system checks...")
 print("Logging into MySQL...")
 try:
-    # Bug: Server closes and can't be opened again
-    """
-    with connect(
-        host="localhost",
-        user="test_user",
-        password="test_user123",
-        database="panda",
-    ) as mydb:
-        print("\nSuccessfully logged into database")
-        print("Detected unsafe login. Please only use this method for development.")
-    """
     # Temporary solution
     mydb = connect(
         host="localhost",
@@ -44,7 +64,12 @@ print("\nSystem checks complete!")
 
 # CONSTANTS
 HOST = ""  # Listens to requests coming from the network
-PORT = int(input("Enter port number: "))
+"""try:
+    PORT = int(input("Enter port number: "))
+except KeyboardInterrupt:
+    print("\nTerminating the program.")
+    exit()"""
+PORT = 8080
 HEADERSIZE = 10
 
 # Create IPv4 TCP socket if permission is there
@@ -52,14 +77,12 @@ server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
 # Enables reuse of socket
 old_state = server_socket.getsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR)
-print("Old socket state: %s" % old_state)
 
 print("\nSocket successfully created")
 
 # Enable the SO_REUSE ADDR option
 server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 new_state = server_socket.getsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR)
-print("New sock state: %s" % new_state)
 
 # Bind socket to host and port
 try:
@@ -184,3 +207,5 @@ while True:
 
     # Close connection
     client_socket.close()
+
+print("Hello")
