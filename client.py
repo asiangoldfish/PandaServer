@@ -2,6 +2,9 @@ import socket
 from sys import exit
 import errno
 
+# Used for handling Python objects in bytes
+import pickle
+
 # CONSTANTS
 HEADERSIZE = 10
 
@@ -37,9 +40,7 @@ while True:
             "4": "raspberrypi.local",
         }
         break
-    
-    
-        
+
 
 # Default host and port for socket
 HOST = prompt_switcher.get(prompt_host)
@@ -57,6 +58,32 @@ try:
     # print("Successfully connected to server.")
 except ConnectionRefusedError:
     print("Connection refused")
+    exit()
 except socket.gaierror:
     print("Cannot find host. Host is invalid or not available.")
+    exit()
+except OSError as e:
+    if e.errno == errno.ENOTCONN:
+        print(e)
+        exit()
+    else:
+        print("Something went wrong with connecting to host.")
+        exit()
 
+while True:
+    # Look for keyboard interrupts
+    try:
+        server_msg = c.recv(16)
+    except KeyboardInterrupt:
+        print("Successfully left the program")
+        c.close()
+        exit()
+    except OSError as e:
+        print(e)
+        exit()
+
+        # Quit program
+        print("\nPress CTRL+C to terminate the program.")
+    
+    print(server_msg.decode())
+    break
