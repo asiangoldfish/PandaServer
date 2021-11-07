@@ -1,5 +1,4 @@
 from os import error, system
-from settings import server_script
 import sys
 
 # Check if this script is running in a virtual environment
@@ -35,10 +34,10 @@ def help():
 
 def runserver():
     system("python3 server.py")
-    """try:
-        system("ls %s | entr python3 manage.py runserver" % (server_script,))
+    try:
+        system("ls *.py | entr -r python3 server.py")
     except error:
-        print(error)"""
+        print(error)
 
 
 def main():
