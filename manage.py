@@ -2,7 +2,6 @@ from os import error, system
 from settings import server_script
 import sys
 
-
 # Check if this script is running in a virtual environment
 def check_venv() -> bool:
     """
@@ -36,10 +35,10 @@ def help():
 
 def runserver():
     system("python3 server.py")
-    try:
+    """try:
         system("ls %s | entr python3 manage.py runserver" % (server_script,))
     except error:
-        print(error)
+        print(error)"""
 
 
 def main():
@@ -50,15 +49,11 @@ def main():
         "help",
         "runserver",
     ]
-
-    # Run script only if in a virtual environment.
-    if not check_venv():
-        return "Script is not running in a virtual environment. Please enable it."
-
+    
     # Allow only one argument
     if len(sys.argv) > 2:
         return "Too many arguments. Terminating the program."
-
+        
     if len(sys.argv) <= 1:
         commands()
         exit()
