@@ -5,6 +5,7 @@ from sys import exit
 import errno
 import os
 
+# Handles config file
 from configparser import ConfigParser
 
 # Enables inputting hidden password
@@ -16,12 +17,19 @@ from typing import Type
 
 from mysql.connector import connect, Error
 
+# Handle urls
+from urls import urlpatterns
+
+# Handle HTTP requests
+
 # Open config file, for development use
 conf = ConfigParser()
 conf.read("settings.ini")
 # Use the following function to fetch any data from the config file.
 # Ex.: conf_get("default", "host")
-conf_get = lambda x,y: conf.get(x, y)
+
+
+def conf_get(x, y): return conf.get(x, y)
 
 
 def printc(string: str, code: str,) -> None:
@@ -48,9 +56,11 @@ def printc(string: str, code: str,) -> None:
     elif code.casefold() == "fail" or code.casefold() == "red":
         colour = FAIL
     else:
-        raise ValueError("Code arg not valid. Check the printc docstring for help.")
-    
+        raise ValueError(
+            "Code arg not valid. Check the printc docstring for help.")
+
     print("%s%s%s" % (colour, (string), RESET))
+
 
 class SystemCheck:
     """
@@ -60,7 +70,7 @@ class SystemCheck:
 
     def __init__(self):
         self.run_system_check()
-    
+
     def login_db(self) -> None:
         """
         Connect to MYSQL database. 
@@ -73,9 +83,10 @@ class SystemCheck:
         try:
             auto_login = conf.getboolean("Database", "auto_login")
         except ValueError as e:
-            print(f"{e}. Please ensure that the correct value for auto_login is set in the config file.")
+            print(
+                f"{e}. Please ensure that the correct value for auto_login is set in the config file.")
             exit()
-        
+
         # Database login credentials
         # Hard code password for easier time in development. PLEASE DISABLE AUTO LOGIN BEFORE DEPLOYMENT
         if auto_login:
@@ -91,7 +102,6 @@ class SystemCheck:
             db_user = input("Username: ")
             db_pass = getpass("Password: ")
             db_database = input("Database Name: ")
-        
 
         # Connect to MySQL database only if login credentials are valid
         print("\nLogging into MySQL...")
@@ -106,19 +116,20 @@ class SystemCheck:
             printc("\nSuccessfully logged into MYSQL!", "ok")
             # Warn server admin or developer about unsafe login if auto login is enabled.
             if auto_login:
-                printc("\nDetected unsafe login. Auto login is enabled. Please only use this method for development.\n", "warning")
+                printc(
+                    "\nDetected unsafe login. Auto login is enabled. Please only use this method for development.\n", "warning")
 
         # Quit program if wrong login credentials
         except Error as error:
             print(error)
             exit()
 
-
     def run_system_check(self):
         print("Running system check...")
         if conf.getboolean("Database", "use_db"):
             self.login_db()
         printc("System check complete!", "ok")
+
 
 syschk = SystemCheck()
 
@@ -158,7 +169,8 @@ printc("Binding socket to host and port success!", "ok")
 
 # Become a server socket and listen for clients
 server_socket.listen(5)
-print(f"\nSocket is listening on port {PORT}...\nGo to http://localhost:8080 to open website.")
+print(
+    f"\nSocket is listening on port {PORT}...\nGo to http://localhost:8080 to open website.")
 
 # Main loop. Keeps the serer running
 while True:
@@ -175,6 +187,7 @@ while True:
     # HTTP Requests
     # Receive request from client.
     client_request = client_socket.recv(1024).decode("utf-8")
+    printc(client_request, "warning")
     request_string = client_request.split(" ")  # Split request from client
 
     # First element is the request method
