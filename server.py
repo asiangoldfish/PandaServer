@@ -3,22 +3,17 @@ import socket
 
 from sys import exit
 import errno
-import os
 
 # Handles config file
 from configparser import ConfigParser
-
-# Enables inputting hidden password
-from getpass import getpass
-
-# Used for handling Python objects in bytes
-import pickle
-from typing import Type
 
 from mysql.connector import connect, Error
 
 # Handle urls
 from urls import urlpatterns
+
+# Threading for handling client connections more efficiently
+import threading
 
 # Handle HTTP requests
 
@@ -75,6 +70,9 @@ class SystemCheck:
         """
         Connect to MYSQL database. 
         """
+        # Enables inputting hidden password
+        from getpass import getpass
+
         # Section to fetch in the config file
         section = "Database"
 
