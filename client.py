@@ -44,7 +44,7 @@ while True:
 
 # Default host and port for socket
 HOST = prompt_switcher.get(prompt_host)
-PORT = 8000
+PORT = 3000
 
 # Checks if HOST is valid
 if HOST is None:
@@ -84,6 +84,6 @@ while True:
 
         # Quit program
         print("\nPress CTRL+C to terminate the program.")
-    
+
     print(server_msg.decode())
     break
