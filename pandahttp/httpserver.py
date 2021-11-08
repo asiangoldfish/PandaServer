@@ -14,18 +14,24 @@ from .terminal import printc
 
 class HttpServer:
 
-    def __init__(self, host="localhost", port=8080, infinite_connection=True) -> None:
+    def __init__(self, host="localhost", port=8080, infinite_connection=True, concurrent_clients=5) -> None:
         """Asign required host settings to start the Http server
 
+        On initializing an instance, the class will initialize the server by creating a socket, binding it to
+        a given domain or IP address and port, and start listening to clients.
+
         Args:
-            host (str, optional): [description]. Defaults to "localhost".
-            port (int, optional): [description]. Defaults to 8080.
-            infinite_connection (bool, optional): [description]. Defaults to True.
+            host (str, optional): Domain or IP to listen on. Defaults to "localhost".
+            port (int, optional): Port to listen on. Defaults to 8080.
+            infinite_connection (bool, optional): If false, the server will terminate after responding once to one client. Defaults to True.
+            concurrent_clients (int, optional): Amount of clients that can be connected to server concurrently. Defaults to 5.
         """
         # Default server settings
         self.host = host
         self.port = port
         self.infinite_connection = infinite_connection
+        # Amount of clients to listen for before being inavailable
+        self.concurrent_clients = concurrent_clients
 
         # Create socket
         self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -52,7 +58,7 @@ class HttpServer:
             exit()
 
         # Listen to clients
-        self.server_socket.listen(5)
+        self.server_socket.listen(self.concurrent_clients)
 
         # Print message on where the server is listening on
         if self.host == "":
