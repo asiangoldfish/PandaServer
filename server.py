@@ -101,43 +101,14 @@ HOST = conf_get("Default", "host")
 PORT = int(conf_get("Default", "port"))
 HEADERSIZE = int(conf_get("Default", "headersize"))
 
-
-# Create IPv4 TCP socket if permission is there
-server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-print(server_socket)
-terminal.printc("Socket successfully created", "ok")
-
-# Enables reuse of socket
-server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-
-# Bind socket to host and port
-try:
-    server_socket.bind((HOST, PORT))
-except PermissionError as e:
-    # Permission denied
-    if e.errno == errno.EACCES:
-        print("%s most likely due to port number %i" % (e.strerror, PORT))
-        exit()
-    else:
-        terminal.printc(
-            "Something went wrong when binding socket to port and host", "fail")
-        exit()
-except OSError as e:
-    terminal.printc("%s. Please change the port." % e, "fail")
-    exit()
-
-terminal.printc("Binding socket to host and port success!", "ok")
-
-# Become a server socket and listen for clients
-server_socket.listen(5)
-print(
-    f"\nSocket is listening on port {PORT}...\nGo to http://localhost:8080 to open website.")
+# Create socket and bind it to host
+server = httpserver.HttpServer(HOST, PORT)
 
 # Main loop. Keeps the server running
 while True:
     # Accept connections from outside. Program is terminated with CTRL+C
     try:
-        client_socket, address = server_socket.accept()
+        client_socket, address = server.server_socket.accept()
         #print(f"\nReceived connection from {address}", end="\n\n")
     except KeyboardInterrupt:
         terminal.printc("\nSuccessfully terminated the program.", "ok")
