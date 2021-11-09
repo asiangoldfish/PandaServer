@@ -9,8 +9,6 @@ from configparser import ConfigParser
 # Enables inputting hidden password
 from getpass import getpass
 
-from mysql.connector import connect, Error
-
 # Custom modules
 from pandahttp import terminal, httpserver
 
