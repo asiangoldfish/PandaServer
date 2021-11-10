@@ -20,6 +20,7 @@ The project is developed with Debian 11, but should work on any other Linux dist
 - Change to the PandaServer directory with `cd PandaServer`
 - Create a virtual environment with `python3 -m venv venv`. All dependencies will be installed here.
 - If you don't already have pip installed, install it with `sudo apt install python3-pip`.
+- [Do this step *before* the last one should you wish not to install pip globally] Activate the virtual environment with `source venv/bin/activate`
 - Install all dependencies with `pip3 install -r requirements.txt`.
 - At the moment the main script is `server.py`. Run this script with `python3 server.py`.
 
