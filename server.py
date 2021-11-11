@@ -1,7 +1,6 @@
 import socket
 
 from sys import exit
-import errno
 
 # Handles config file
 from configparser import ConfigParser
@@ -12,14 +11,17 @@ from getpass import getpass
 # Custom modules
 from pandahttp import terminal, httpserver
 
+import os
+
 # Open config file, for development use
 conf = ConfigParser()
 conf.read("settings.ini")
 # Use the following function to fetch any data from the config file.
-# Ex.: conf_get("default", "host")
+# Ex.: conf.get("default", "host")
 
-
-def conf_get(x, y): return conf.get(x, y)
+# Clear terminal screen if enabled in config
+if conf.get("Default", "clear_terminal") == "true":
+    os.system('cls' if os.name == 'nt' else 'clear')
 
 
 class SystemCheck:
@@ -54,10 +56,10 @@ class SystemCheck:
         # Hard code password for easier time in development. PLEASE DISABLE AUTO LOGIN BEFORE DEPLOYMENT
         if auto_login:
             # The value for these can be changed in the config file
-            db_host = conf_get(section, "host")
-            db_user = conf_get(section, "user")
-            db_pass = conf_get(section, "password")
-            db_database = conf_get(section, "database")
+            db_host = conf.get(section, "host")
+            db_user = conf.get(section, "user")
+            db_pass = conf.get(section, "password")
+            db_database = conf.get(section, "database")
         else:
             # Prompt server admin for login credentials to database. SAFE WAY TO RUN THE DB SERVER
             print("Login to MySQL:")
@@ -98,9 +100,9 @@ syschk = SystemCheck()
 syschk.run_system_check()
 
 # Host address, port and headersize for messages sent by server
-HOST = conf_get("Default", "host")
-PORT = int(conf_get("Default", "port"))
-HEADERSIZE = int(conf_get("Default", "headersize"))
+HOST = conf.get("Default", "host")
+PORT = int(conf.get("Default", "port"))
+HEADERSIZE = int(conf.get("Default", "headersize"))
 
 # Create socket and bind it to host
 server = httpserver.HttpServer(HOST, PORT)
@@ -108,6 +110,7 @@ server = httpserver.HttpServer(HOST, PORT)
 # Main loop. Keeps the server running
 while True:
     # Accept connections from outside. Program is terminated with CTRL+C
+
     try:
         client_socket, address = server.server_socket.accept()
         #print(f"\nReceived connection from {address}", end="\n\n")
@@ -120,8 +123,9 @@ while True:
     # HTTP Requests
     # Receive request from client.
     client_request = client_socket.recv(1024).decode("utf-8")
-    terminal.printc(client_request, "warning")
+    #terminal.printc(client_request, "warning")
     request_string = client_request.split(" ")  # Split request from client
+    print(request_string)
 
     # First element is the request method
     # Second element is the requested file path
