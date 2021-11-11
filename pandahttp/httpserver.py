@@ -7,6 +7,7 @@ and properly.
 Additionally, also creates and manages HTTP server using the HttpServer class.
 The server uses TCP and IPv4 protocols.
 """
+from configparser import Error
 import socket
 import errno
 from .terminal import printc
@@ -34,7 +35,12 @@ class HttpServer:
         self.concurrent_clients = concurrent_clients
 
         # Create socket
-        self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        try:
+            self.server_socket = socket.socket(
+                socket.AF_INET, socket.SOCK_STREAM)
+        except Error as e:
+            print(e)
+            exit()
 
         # Enable reusing socket after terminating the program.
         # If this is not included, there's a chance that an error will be raised
