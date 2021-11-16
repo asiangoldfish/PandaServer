@@ -7,7 +7,7 @@ Panda Server is an HTTP server project and can be used as a learning tool to und
 ---
 
 ## **Links**
-- [Test your own Panda Server](#test-your-own-pandaserver)
+- [Run your own Panda Server](#run-your-own-pandaserver)
 - [How it works](#how-it-works)
 
 ---
