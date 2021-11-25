@@ -122,15 +122,26 @@ while True:
 
     # HTTP Requests
     # Receive request from client.
-    client_request = client_socket.recv(1024).decode("utf-8")
+    print(address)
+    try:
+        client_request = client_socket.recv(1024).decode("utf-8")
+    except ConnectionResetError:
+        print(f"Closing client: {address}")
+        client_socket.close()
+        continue
+
     #terminal.printc(client_request, "warning")
     request_string = client_request.split(" ")  # Split request from client
-    print(request_string)
 
     # First element is the request method
     # Second element is the requested file path
-    request_method = request_string[0]
-    request_file = request_string[1]
+    try:
+        request_method = request_string[0]
+        request_file = request_string[1]
+    except IndexError:
+        print(f"Closing client: {address}")
+        client_socket.close()
+        continue
 
     # Split requested file from database queries
     file_name = request_file.split("?")[0]
@@ -155,6 +166,7 @@ while True:
             mimetype = "text/html"
 
         header += "Content-Type: %s\n\n" % mimetype  # + "<strong>\n\n</strong"
+        print(f"Successfully sent index.html to {address}")
 
     except Exception as e:
         # If page is not found
@@ -174,4 +186,5 @@ while True:
     client_socket.send(final_response)
 
     # Close connection
+    print(f"Closing client: {address}")
     client_socket.close()
