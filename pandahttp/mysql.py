@@ -5,9 +5,10 @@ easy to implement the server to a project and easily connect the application to
 the server.
 """
 
-from mysql.connector import connect
+from mysql.connector import connect, Error
 from configparser import ConfigParser
 from getpass import getpass  # Secret password
+import traceback
 
 
 class MySql:
@@ -46,9 +47,9 @@ class MySql:
         autologin (bool): If no config file is specified, then this specifies
                           whether to login MySQL with hardcoded credentials or prompt
                           system administrator.
-        logincreds (dict): All login credentials required for MySQL. Please refer to
-                           the config argument for a list of all required keys (except
-                           auto_login).
+        logincreds (dict): All login credentials required for MySQL instead of. Please
+                           using the config file. Refer to the config argument for a list
+                           of all required keys (except auto_login).
         logging (bool): Logs the login process to terminal.
 
         Returns:
@@ -57,63 +58,86 @@ class MySql:
         """
 
         # Config is None if config as argument hasn't been passed
-        config = config if config is not None else None
-        # Checks that config is instance of ConfigParser. Raise error if not
-        if not isinstance(config, ConfigParser):
-            raise ValueError("Missing child of class ConfigParser")
+        if config is not None:
+            config = config if config is not None else None
+            # Checks that config is instance of ConfigParser. Raise error if not
+            if not isinstance(config, ConfigParser):
+                raise TypeError("Missing child of class ConfigParser")
 
-        # Raise error if config has been passed but not configsector
-        if config is not None and configsector is None:
-            raise KeyError("Missing configsector argument")
+            # Configsector: Raise error if config has been passed but not configsector
+            # This is used for fetching data from the config file
+            if config is not None and configsector is None:
+                raise ValueError(
+                    "Configsector must be passed as argument to MySql.login")
 
-        # Fetches autologin from config and checks for boolean value
-        try:
-            autologin = bool(autologin if config is None else config.get(
-                configsector, "autologin"))
-        except ValueError:
-            exit("Autologin for MySQL is not valid. Must be a boolean")
-        except KeyError:
-            exit("Key autologging missing in config file")
-        
-        try:
-            # Also checks for dict
-            logincreds = dict(logincreds if config is None else None)
-        except ValueError:
-            exit("Login credentials for MySQL are not valid. Must be in a dictionary.")
+            # Configsector must be type str for the configparser to work
+            if not isinstance(configsector, str):
+                raise KeyError("Configsector must be type str")
 
-        # Checks that all entries exist in the logincreds dictionary
-        if "host" and "user" and "password" and "database" in logincreds:
-            pass
+            # Fetches autologin from config and checks for boolean value
+            try:
+                # Checks autologin against possible true values...
+                if config.get(configsector, "autologin").lower() in ["yes", "1", "true"]:
+                    autologin = True
+                else:
+                    autologin = False
+                print(autologin)
+            except ValueError:
+                raise ValueError(
+                    "Autologin for MySQL is not valid. Must be a boolean")
+            except KeyError:
+                raise KeyError("Key autologging missing in config file")
+
+        # If config file has been passed, aka is not None, then use logincreds instead
         else:
-            exit("Missing keys in dictionary for MySQL: host, password, and database")
-        
+            try:
+                # Also checks for dict
+                logincreds = dict(logincreds if config is None else None)
+            except ValueError:
+                raise ValueError(
+                    "Login credentials for MySQL are not valid. Must be in a dictionary.")
+            except TypeError:
+                raise TypeError(
+                    "Logincreds must not be 'NoneType' object if config is not used.")
+
+            # Checks that all entries exist in the logincreds dictionary
+            if "host" and "user" and "password" and "database" in logincreds:
+                pass
+            else:
+                raise KeyError(
+                    "Missing keys in dictionary for MySQL: host, password, and database")
+
         # MySQL login credentials
-        """
-            if autologin is True:
+        if autologin is True:
             host = config.get(
                 configsector, "host") if config is not None else logincreds.get("host")
+            user = config.get(
+                configsector, "user") if config is not None else logincreds.get("user")
             password = config.get(
                 configsector, "password") if config is not None else logincreds.get("password")
             database = config.get(
                 configsector, "database") if config is not None else logincreds.get("database")
-        
+
         # User logs in via terminal if autologin is false
         else:
-            print("Login to MySQL:")
-            host = input("Host: ") """
-        
-        host, user, password, database = str()
-        for logcred in [host, user, password, database]:
-            if autologin is True:
-                host = config.get(configsector, "host") if config is not None else logincreds.get("host")
-
-                user = config.get(configsector, "user") if config is not None else logincreds.get("user")
-
-                password = config.get(configsector, "password") if config is not None else logincreds.get("password")
-
-                database = config.get(configsector, "database") if config is not None else logincreds.get("database")
-            else:
-                host = input("Host:")
+            try:
+                print("Login to MySQL...")
+                host = input("Host: ")
                 user = input("User: ")
                 password = getpass("Password: ")
                 database = input("Database: ")
+            except KeyboardInterrupt:
+                exit("\n")
+
+        # Connect to database
+        try:
+            mydb = connect(
+                host=host,
+                user=user,
+                password=password,
+                database=database,
+            )
+
+            print("\nSuccessfully logged into MySQL!")
+        except Error as e:
+            exit(e)
