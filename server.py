@@ -1,6 +1,7 @@
 import socket
 
 from sys import exit
+import os
 
 # Handles config file
 from configparser import ConfigParser
@@ -9,95 +10,16 @@ from configparser import ConfigParser
 from getpass import getpass
 
 # Custom modules
-from pandahttp import terminal, httpserver
+from pandahttp import terminal, httpserver, mysql
 
-import os
 
 # Open config file, for development use
 conf = ConfigParser()
 conf.read("settings.ini")
-# Use the following function to fetch any data from the config file.
-# Ex.: conf.get("default", "host")
 
 # Clear terminal screen if enabled in config
 if conf.get("Default", "clear_terminal") == "true":
     os.system('cls' if os.name == 'nt' else 'clear')
-
-
-class SystemCheck:
-    """
-    Run system check to make sure there are no errors upon running the server. Provides methods to enable
-    or disable use of database.
-    """
-
-    def __init__(self):
-        pass
-
-    def login_db(self) -> None:
-        """
-        Connect to MYSQL database. 
-        """
-        # Enables inputting hidden password
-        from getpass import getpass
-
-        # Section to fetch in the config file
-        section = "Database"
-
-        # Enable auto login for easy testing, debugging or development
-        # WARNING: PLEASE DISABLE AUTO LOGIN in the config file before deployment
-        try:
-            auto_login = conf.getboolean("Database", "auto_login")
-        except ValueError as e:
-            print(
-                f"{e}. Please ensure that the correct value for auto_login is set in the config file.")
-            exit()
-
-        # Database login credentials
-        # Hard code password for easier time in development. PLEASE DISABLE AUTO LOGIN BEFORE DEPLOYMENT
-        if auto_login:
-            # The value for these can be changed in the config file
-            db_host = conf.get(section, "host")
-            db_user = conf.get(section, "user")
-            db_pass = conf.get(section, "password")
-            db_database = conf.get(section, "database")
-        else:
-            # Prompt server admin for login credentials to database. SAFE WAY TO RUN THE DB SERVER
-            print("Login to MySQL:")
-            db_host = input("Host: ")
-            db_user = input("Username: ")
-            db_pass = getpass("Password: ")
-            db_database = input("Database Name: ")
-
-        # Connect to MySQL database only if login credentials are valid
-        print("\nLogging into MySQL...")
-        try:
-            # Temporary solution
-            mydb = connect(
-                host=db_host,
-                user=db_user,
-                password=db_pass,
-                database=db_database
-            )
-            terminal.printc("\nSuccessfully logged into MYSQL!", "ok")
-            # Warn server admin or developer about unsafe login if auto login is enabled.
-            if auto_login:
-                terminal.printc(
-                    "\nDetected unsafe login. Auto login is enabled. Please only use this method for development.\n", "warning")
-
-        # Quit program if wrong login credentials
-        except Error as error:
-            print(error)
-            exit()
-
-    def run_system_check(self):
-        print("Running system check...")
-        if conf.getboolean("Database", "use_db"):
-            self.login_db()
-        terminal.printc("System check complete!", "ok")
-
-
-syschk = SystemCheck()
-syschk.run_system_check()
 
 # Host address, port and headersize for messages sent by server
 HOST = conf.get("Default", "host")
