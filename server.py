@@ -1,6 +1,6 @@
 import socket
 
-from sys import exit
+from sys import exit, argv
 import os
 
 # Handles config file
@@ -23,7 +23,17 @@ if conf.get("Default", "clear_terminal") == "true":
 
 # Host address, port and headersize for messages sent by server
 HOST = conf.get("Default", "host")
-PORT = int(conf.get("Default", "port"))
+
+if len(argv) <= 1:
+    PORT = int(conf.get("Default", "port"))
+else:
+    try:
+        int(argv[1])
+    except ValueError:
+        exit(f"Invalid argument {argv[1]}. Port number must be an integer")
+        
+    PORT=int(argv[1])
+
 HEADERSIZE = int(conf.get("Default", "headersize"))
 
 # Create socket and bind it to host
