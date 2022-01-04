@@ -79,7 +79,7 @@ class HttpServer:
                 f"\nSocket is listening on port {self.port} on the local network...\nGo to http://localhost:8080 to open website.")
         else:
             print(
-                f"\nSocket is listening on port {self.port}...\nGo to http://localhost:8080 to open website.")
+                f"\nSocket is listening on port {self.port}...\nGo to http://localhost:{self.port} to open website.")
 
         return server_socket
 
