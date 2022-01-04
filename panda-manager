@@ -15,6 +15,10 @@ Commands:
     -s, --start                 Start the server
     -ds, --download-serverpy    Download server.py
 
+Error Codes:
+A detailed overview of error codes can be found in docs/errors.md, or by
+going to https://github.com/asiangoldfish/PandaServer/blob/main/docs/errors.md
+
 USAGE
     return
 }
@@ -23,7 +27,7 @@ USAGE
 start() {
     # Check if Python3 is installed on the system
     if ! command -v python3 &> /dev/null; then
-        echo "Python3 not found."
+        echo "Error 1: Command python3 not found."
         return 1
     fi
 
@@ -55,10 +59,21 @@ download_server() {
         esac
     fi
 
-    serverpy_url="https://raw.githubusercontent.com/asiangoldfish/PandaServer/main/server.py"
-    echo "Downloading file server.py from $serverpy_url"
+    # Check if curl is installed on the system
+    if ! command -v curl &> /dev/null; then
+        echo "Error 2: Command curl not found."
+        return 1
+    fi
 
-    curl -o ./server.py $serverpy_url
+    # Pings to check if the script is still available
+    serverpy_url="https://raw.githubusercontent.com/asiangoldfish/PandaServer/main/server.py"
+    if curl -s --head --request GET $serverpy_url | grep "200" > /dev/null; then
+        echo "Downloading file server.py from $serverpy_url"
+
+        curl -o ./server.py $serverpy_url
+    else
+        echo "Error 3: Could not find server.py in the remote repository"
+    fi
 }
 
 ###
@@ -87,7 +102,7 @@ main(){
             start
             return
             ;;
-        -ds | --download-serverpy)
+        -d | --download)
             download_server
             return
             ;;
