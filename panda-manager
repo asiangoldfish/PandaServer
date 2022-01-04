@@ -1,0 +1,104 @@
+#!/bin/bash
+
+# PandaServer utility script. Manage files using this script.
+# To get started, run this script in the terminl: panda-manager --help
+
+# Help page
+usage() {
+    cat <<USAGE
+Usage: panda-manager [OPTION]
+
+Note: PandaServer command-line utility tool.
+
+Commands:
+    -h, --help                  Help page for the utility tool
+    -s, --start                 Start the server
+    -ds, --download-serverpy    Download server.py
+
+USAGE
+    return
+}
+
+# Starts the PandaServer
+start() {
+    # Check if Python3 is installed on the system
+    if ! command -v python3 &> /dev/null; then
+        echo "Python3 not found."
+        return 1
+    fi
+
+    # Checks that the main file exists
+    if ! [ -f server.py ]; then
+        echo -n "File server.py does not exist. "
+        echo "Download the file using the following command:"
+        echo "bash panda-manager -ds"
+        return 1
+    fi
+
+    python3 server.py
+}
+
+download_server() {
+    # Enables user to quickly download file server.py in case the file is missing
+
+    # Checks if file already exists, prompts user to continue if file was found
+    if [ -f ./server.py ]; then
+        read -r -p "Found server.py already exists. Continue? [y/N] " input
+ 
+        case $input in
+            [yY][eE][sS]|[yY])
+                echo ""
+                ;;
+            *)
+                return
+                ;;
+        esac
+    fi
+
+    serverpy_url="https://raw.githubusercontent.com/asiangoldfish/PandaServer/main/server.py"
+    echo "Downloading file server.py from $serverpy_url"
+
+    curl -o ./server.py $serverpy_url
+}
+
+###
+# Functions
+###
+
+# Main script. Using a function here, enables usage or return statement
+main(){
+    # Runs help message if no arguments were found
+    if [ $# -eq 0 ]; then
+        echo "This script requires arguments. Example: panda-manager --help."
+        return 0
+    elif [[ $# -gt 2 ]]; then
+        echo "Too many arguments. This script only takes one argument."
+        return 0
+    fi
+
+    # Checks for flags and runs accordingly
+    for arg in "$@"; do
+        case $arg in
+        -h | --help)
+            usage
+            return
+            ;;
+        -s | --start)
+            start
+            return
+            ;;
+        -ds | --download-serverpy)
+            download_server
+            return
+            ;;
+        *)
+            echo "Invalid command: $arg"
+            return
+            ;;
+        esac
+        shift
+    done
+}
+
+# Run script
+main "$@"

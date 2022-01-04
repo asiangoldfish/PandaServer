@@ -10,7 +10,7 @@ from configparser import ConfigParser
 from getpass import getpass
 
 # Custom modules
-from pandahttp import printc
+from pandahttp import printc, HttpServer
 
 
 # Open config file, for development use
@@ -27,7 +27,7 @@ PORT = int(conf.get("Default", "port"))
 HEADERSIZE = int(conf.get("Default", "headersize"))
 
 # Create socket and bind it to host
-server = httpserver.HttpServer(HOST, PORT)
+server = HttpServer(HOST, PORT)
 
 # Main loop. Keeps the server running
 while True:
