@@ -10,7 +10,7 @@ from configparser import ConfigParser
 from getpass import getpass
 
 # Custom modules
-from pandahttp import terminal, httpserver, mysql
+from pandahttp import printc
 
 
 # Open config file, for development use
@@ -37,7 +37,7 @@ while True:
         client_socket, address = server.server_socket.accept()
         #print(f"\nReceived connection from {address}", end="\n\n")
     except KeyboardInterrupt:
-        terminal.printc("\nSuccessfully terminated the program.", "ok")
+        printc("\nSuccessfully terminated the program.", "ok")
         exit()
     except socket.error as msg:
         print("%s" % (msg,))
