@@ -31,9 +31,33 @@ USAGE
     return
 }
 
+source_venv() {
+    # Activate virtual environment
+    valid_dirnames=( "venv" ".venv" "env" ".env" )
+    for name in "${valid_dirnames[@]}"; do
+        if [[ -d ${name} ]]; then
+            source "${name}/bin/activate"
+            return 0
+        fi
+    done
+
+    # If no virtual environments were found, return 1
+    return 1
+}
+
+# Checks if a command is available
+verify_cmd() {
+    if ! command -v "${1}" &> /dev/null; then
+        echo "Error 2: Command ${1} not found."
+        return 1
+    else
+        return 0
+    fi
+}
+
 # Starts the PandaServer
 start() {
-    if [[ $2 == "help" ]] || [[ $2 == "--help" ]] || [[ $2 == "-h" ]]; then
+    if [[ $2 == "--help" ]] || [[ $2 == "-h" ]]; then
         echo """Usage: panda-manager --start [OPTION]
 
 Starts the PandaServer. The server is run with the script server.py. This command also
@@ -57,10 +81,20 @@ Some errors may occur. Visit the documentation for help with troubleshooting the
         return 0
     fi
 
-    # Check if Python3 is installed on the system
-    if ! command -v python3 &> /dev/null; then
-        echo "Error 1: Command python3 not found."
+    # Enables virtual environment
+    source_venv
+    source_val=$?
+    if [ ${source_val} -eq 1 ]; then
+        echo "No virtual environment was found. Use the following command to setup one up:"
+        echo "panda-manager -d modules"
         return 1
+    fi
+
+    # Check if Python3 is installed on the system
+    verify_cmd "python3"
+    verify_val=$?
+    if [ ${verify_val} -eq 1 ]; then
+        return
     fi
 
     # Checks that the main file exists
@@ -120,8 +154,9 @@ Some errors may occur. Visit the documentation for help with troubleshooting the
     # Opens browser if appropriate argument is passed
     if ! [[ ${browser} == "" ]]; then
         # Checks if command is available
-        if ! command -v "${browser}" &> /dev/null; then
-            echo "Error 1: Command ${browser} not found."
+        verify_cmd "${browser}"
+        verify_val=$?
+        if [ ${verify_val} -eq 1 ]; then
             return 1
         fi
         # Run the browser
@@ -130,10 +165,12 @@ Some errors may occur. Visit the documentation for help with troubleshooting the
     
     # Enables live-reload if enabled
     if [[ ${live_reload} == "true" ]]; then
-        if ! command -v nodemon &> /dev/null; then
-            echo "Error 1: Command nodemon not found."
+        verify_cmd "nodemon"
+        verify_val=$?
+        if [ ${verify_val} -eq 1 ]; then
             return 1
         fi
+
         nodemon server.py ${port}
     else
         python3 server.py ${port}
@@ -158,9 +195,10 @@ download_server() {
     fi
 
     # Check if curl is installed on the system
-    if ! command -v curl &> /dev/null; then
-        echo "Error 2: Command curl not found."
-        return 1
+    verify_cmd "curl"
+    verify_val=$?
+    if [ ${verify_val} -eq 1 ]; then
+        return 1;
     fi
 
     # Pings to check if the script is still available
@@ -178,9 +216,10 @@ download_server() {
 
 download_pandahttp() {
     # Check if curl is installed on the system
-    if ! command -v curl &> /dev/null; then
-        echo "Error 2: Command curl not found."
-        return 1
+    verify_cmd "curl"
+    verify_val=$?
+    if [ ${verify_val} -eq 1 ]; then
+        return 1;
     fi
 
     # Checks that the current directory is PandaServer to ensure that
@@ -227,10 +266,15 @@ download_pandahttp() {
     cd ${cwd} # Change back to original directory
 }
 
+download_modules() {
+    return 0
+}
+
 # Handles downloading dependencies
 download() {
-    if [[ $2 == "help" ]] || [[ $2 == "" ]]; then
-        echo """Usage: panda-manager -d [...args]
+    case $2 in
+    -h | --help)
+        echo """Usage: panda-manager --download [FILES]
 Example: panda-manager -d server.py
 Download missing dependencies automatically from the internet. This command 
 also checks if the source is available and will return an error if it's not.
@@ -240,17 +284,61 @@ Arguments:
                                 out this script, the engine will not work.
     pandahttp                   Downloads the custom module pandahttp that
                                 the project relies on.
+    modules                     Installs all dependencies required for the project
 
 An issue can be raised at https://github.com/asiangoldfish/PandaServer/issues if any sources are unavailable."""
 
         return 0
-    elif [[ $2 == "server.py" ]]; then
+        ;;
+    server.py)
         download_server
         return 0
-    elif [[ $2 == "pandahttp" ]]; then
+        ;;
+    pandahttp)
         download_pandahttp
         return 0
-    fi
+        ;;
+    modules)
+        # Activates virtual environment first to install all dependencies
+        # locally in the project directory
+        # Firstly, checks if the python3 binary exists in the project folder
+        if ! ([ -f "venv/bin/python3" ] || [ -f ".venv/bin/python3" ] || [ -f "env/bin/python3" ] || [ -f ".env/bin/python3" ]); then
+            echo -n "Could not find Python executable in a virtual environment. Install virtual environment? [Y/n] "
+            read -r venv_prompt
+            echo ${venv_prompt}
+            if ! ([[ ${venv_prompt} == "" ]] || [[ ${venv_prompt} == "y" ]] || [[ ${venv_prompt} == "Y" ]]); then
+                echo "No dependencies were installed"
+                return 0
+            else
+                # Check if python3-venv is installed on the system
+                if ! command -v python3 -m venv venv &> /dev/null; then
+                    echo "Error 2: Python module 'venv' not found."
+                    return 1
+                fi
+                
+                # Creates virtual environment
+                echo "Creating virtual environment..."
+                python3 -m venv venv
+            fi
+        fi
+
+        source_venv
+
+        # Download dependencies if requirements.txt file exists
+        if ! [[ -f "requirements.txt" ]]; then
+            echo "File requirements.txt was not found."
+        fi
+
+        verify_cmd "pip3"
+        verify_return=$?
+        if [ ${verify_return} -eq 1 ]; then
+            return 1
+        else
+            pip3 install -r requirements.txt
+            echo -e "\nSuccessfully installed all dependencies"
+        fi
+        ;;
+    esac
 }
 ###
 # Functions

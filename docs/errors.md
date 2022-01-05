@@ -1,17 +1,13 @@
 # Error Codes
 A detailed overview of possible errors that may occur. If any errors occur and cannot be found here, please raise an [https://github.com/asiangoldfish/PandaServer/issues] detailing the error.
 
-## Error 1: Python3 Not Found
-**Reason:** This error occurs because Python3 could not be found.  
-panda-manager script directly uses the command `python3` to execite the *server.py* Python script. If this command cannot be found, then the script cannot be executed.
-
-**Fix:** Install Python3 on your system.
+## Error 1:
 
 ## Error 2: Command [command] not found
 **Reason:** The given command was not found on the system
 The panda-manager script uses global available commands or aliases to execute commands. If they are not available or not found, then the script will fail to execute code.
 
-**Fix:** Make sure that the command is installed and available. Be mindful that the script should never be executed with special privileges.
+**Fix:** Make sure that the command is installed and available. For more info on the specific commands not found, see [commands list](./cmd_not_found.md)
 
 ## Error 3: Could not find [file] in the remote repository
 **Reason:** The script in the remote repository is currently unavailable.  
