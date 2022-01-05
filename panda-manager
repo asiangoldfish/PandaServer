@@ -33,16 +33,26 @@ USAGE
 
 # Starts the PandaServer
 start() {
-    if [[ $2 == "help" ]]; then
+    if [[ $2 == "help" ]] || [[ $2 == "--help" ]] || [[ $2 == "-h" ]]; then
         echo """Usage: panda-manager --start [OPTION]
 
 Starts the PandaServer. The server is run with the script server.py. This command also
 takes optional arguments.
 
 Arguments:
-    [BROWSER]               Right after --start, enter a browser name and open a new tab in it
-    -p, --port              Open another the server in another port. This option will override
-                            any port settings in the settings.ini config file"""
+    -b, --browser [VALUE]   Right after --start, enter a browser name and open a new tab in it.
+        -p, --port [VALUE]  Open another the server in another port. This option will override
+                            any port settings in the settings.ini config file.
+    -lr, --live-reload      Enable live reload. Disabled by default.
+
+For more about the command in detail, visit the documentation at
+https://github.com/asiangoldfish/PandaServer.
+
+Due to the way that the commands are parsed, incorrect arguments will be ignored and default
+values will be applied.
+
+Errors:
+Some errors may occur. Visit the documentation for help with troubleshooting them."""
 
         return 0
     fi
@@ -64,31 +74,70 @@ Arguments:
     # Checks for a second argument, which will tell the script to
     # open a new tab in a chosen browser and what command to open
     # the browser with
-    port="" # Runs server with default port
 
-    if ! [[ $2 == "" ]]; then
+    # Runs through each argument passed and checks for flags and value accordingly
+    browser=""
+    port=""
+    live_reload="false"
+    host="localhost"
+    while ! [[ $2 == "" ]]; do
+        case $2 in
+            -b | --browser)
+                if ! [[ $3 == "" ]]; then
+                    browser="${3}"
+                fi
+                ;;
+            -p | --port)
+                if ! [[ $3 == "" ]]; then
+                    port="${3}"
+                fi
+                ;;
+            -h | --host)
+                if ! [[ $3 == "" ]]; then
+                    host="${3}"
+                fi
+                ;;
+            -lr | --live-reload)
+                live_reload="true"
+                ;;
+            # *)
+            #     echo ""
+            #     ;;
+        esac
+        shift
+    done
+
+    # Verifies port number
+    if [[ "${port}" =~ ^[0-9]+$ ]] && ((${port} >= 1024 && ${port} <= 65536)); then
+        port="${port}"
+    elif [[ "${port}" == "" ]]; then
+        :
+    else
+        echo "Port number must be an integer between 1024 and 65536"
+        return 1
+    fi     
+
+    # Opens browser if appropriate argument is passed
+    if ! [[ ${browser} == "" ]]; then
         # Checks if command is available
-        if ! command -v "$2" &> /dev/null; then
-            echo "Error 1: Command $2 not found."
+        if ! command -v "${browser}" &> /dev/null; then
+            echo "Error 1: Command ${browser} not found."
             return 1
         fi
-        
-        # Checks if port number was passed as argument
-        if [[ $3 == "-p" ]] || [[ $3 == "--port" ]]; then
-            # Checks if the given input is an integer or is empty
-            if [[ "$4" =~ ^[0-9]+$ ]] && (($4 >= 1024 && $4 <= 65536)); then
-                port="$4"
-            else
-                echo "Port number must be an integer between 1024 and 65536"
-                return 1
-            fi
-        fi
-
-        # Executes command if available
-        brave-browser http://localhost:$port > /dev/null 2>&1
+        # Run the browser
+        ${browser} http://${host}:${port} > /dev/null 2>&1
     fi
     
-    python3 server.py ${port}
+    # Enables live-reload if enabled
+    if [[ ${live_reload} == "true" ]]; then
+        if ! command -v nodemon &> /dev/null; then
+            echo "Error 1: Command nodemon not found."
+            return 1
+        fi
+        nodemon server.py ${port}
+    else
+        python3 server.py ${port}
+    fi
 }
 
 download_server() {

@@ -1,0 +1,11 @@
+{
+    "ignore": [
+        "venv/*",
+        ".git",
+        "*/__pycache__/"
+    ],
+    "execMap": {
+        "py": "python3"
+    },
+    "ext": "py,json,ini,html,css,js"
+}
