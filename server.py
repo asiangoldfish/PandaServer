@@ -54,7 +54,7 @@ while True:
 
     # HTTP Requests
     # Receive request from client.
-    print(address)
+    # print(address)
     try:
         client_request = client_socket.recv(1024).decode("utf-8")
     except ConnectionResetError:
@@ -71,7 +71,6 @@ while True:
         request_method = request_string[0]
         request_file = request_string[1]
     except IndexError:
-        print(f"Closing client: {address}")
         client_socket.close()
         continue
 
@@ -82,8 +81,9 @@ while True:
     if file_name == "":
         file_name = "index.html"
     # Respond with the requested file. Catch error if file non-existent
+    src_dir = conf.get("Default", "location")
     try:
-        file = open("%s" % (file_name), 'rb')  # 'rb' = read binary
+        file = open("%s" % (f"{src_dir}/{file_name}"), 'rb')  # 'rb' = read binary
         response = response = file.read()
         file.close()
 
@@ -98,7 +98,6 @@ while True:
             mimetype = "text/html"
 
         header += "Content-Type: %s\n\n" % mimetype  # + "<strong>\n\n</strong"
-        print(f"Successfully sent index.html to {address}")
 
     except Exception as e:
         # If page is not found
@@ -116,7 +115,7 @@ while True:
     final_response = header.encode("utf-8")
     final_response += response
     client_socket.send(final_response)
+    # printf
 
     # Close connection
-    print(f"Closing client: {address}")
     client_socket.close()
