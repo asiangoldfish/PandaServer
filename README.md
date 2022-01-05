@@ -1,19 +1,24 @@
 # **Panda Server**
 
-**WARNING!** Please do not use this server for production or expose it to the world wide web!! This is an extremely insecure and vulnerable server and *will* expose your computer to exploits. Use this server at your own risk.
+**WARNING!** *DO NOT* use this server for production or expose it to the public!! This server is vulnerable and *will* expose your system to exploits and serious damage. Use this server only at your local network and on your local machine.
 
-Panda Server is an HTTP server project and can be used as a learning tool to understand how the TCP/IP model works at the application layer. It's written by somebody who is learning Python and the essence of how the TCP/IP model, networking and servers work. It can additionally be used as a practise target for exploitations.
+Panda Server is a HTTP server and a learning tool to understand how the TCP/IP model works at the application layer. It's written primarily for novice penetration testers in mind and for developers that wish to understand how web servers actually work. It will never be as secure, maintained and usable as popular software like Nginx or Apache, and is neither intended to be so.
 
 ---
 
 ## **Links**
+- [What is Panda Server](#what-is-panda-server)
 - [Run your own Panda Server](#run-your-own-pandaserver)
 - [How it works](#how-it-works)
 - [Error Codes](/docs/errors.md)
+- [Useful Resources](#useful-resources)
 
 ---
 
-## **Run your own PandaServer**
+## What Is Panda Server
+
+
+## Run your own PandaServer
 The project is developed with Debian 11, but should work on any other Linux distributions. Some features in the future may not work on Windows, but this will eventually be documented as the project is developed. That said, let's get started.
 
 - This project uses Python 3. Python versions earlier than 3.6 may or may not work. Install Python 3 with `sudo apt install python3` or go to https://python.org/downloads.
@@ -38,3 +43,6 @@ The logic for handling HTTP requests and managing the server security is written
 As the project is developed, vulnerabilities are slowly patched, new features are implemented, new bugs are introduced and eventually are fixed. If you'd like to practise on your exploitation skills, feel free to download or clone the project and go ham with it.
 
 I strongly recommend to run this project in a virtual machine so you don't accidentally screw your computer up if you choose to use it as a practise target.
+
+## Useful Resources
+- Handling HTTP requests: [Stack Overflow](https://stackoverflow.com/questions/41386086/handling-client-requests-in-http-server)
