@@ -1,10 +1,6 @@
 # **Panda Server**
 
-**WARNING!** *DO NOT* use this server for production or expose it to the public!! This server is vulnerable and *will* expose your system to exploits and serious damage. Use this server only at your local network and on your local machine.
-
-Panda Server is a HTTP server and a learning tool to understand how the TCP/IP model works at the application layer. It's written primarily for novice penetration testers in mind and for developers that wish to understand how web servers actually work. It will never be as secure, maintained and usable as popular software like Nginx or Apache, and is neither intended to be so.
-
----
+**WARNING!** *DO NOT* use this server for production or expose it to the public!! This server is vulnerable and *will* expose your system to exploits and serious damage. Use this server only on your local network and local machine.
 
 ## **Links**
 - [What is Panda Server](#what-is-panda-server)
@@ -13,22 +9,69 @@ Panda Server is a HTTP server and a learning tool to understand how the TCP/IP m
 - [Error Codes](/docs/errors.md)
 - [Useful Resources](#useful-resources)
 
----
-
 ## What Is Panda Server
+Panda Server is a HTTP server and a learning tool to understand how the TCP/IP model works at the application layer. It's written primarily with novice penetration testers in mind and developers that wish to understand how a web server works. It will never be as secure, maintained and usable as popular software like Nginx or Apache, and neither is it intended to be so.
 
+With that out of the way, what exactly is this all about? Panda Server is purely written with Python 3 and serves as a simple web server. It supports MySQL and MariaDB databases and is also well documented. Although the server is highly configurable, the project comes with default configuration values and works right out of the box.
+
+The project relies heavily on Python's builtin socket module and greatly attempts to maintain a clean and organized project and code structure. With this, it aims to encourage new programmers to checkout well-documented code without being overwhelmed. Furthermore, it serves as an example on how the socket module can be used and integrated with other modules. Panda Server comes with a custom module named "pandahttp" where codes for handling HTTP requests and managing databases reside.
+
+This is a personal project. As the server is not intended for production, but merely a simple development software for front-end development, the software will have limitations. This is especially true with security, as it does not run all the necessary checks to protect the system against attacks like SQL injections, cross-site scripting (XSS), local file inclusion attacks (LFI), reverse shell and other serious attacks. This can make the software a practise target to penetration testers.
 
 ## Run your own PandaServer
-The project is developed with Debian 11, but should work on any other Linux distributions. Some features in the future may not work on Windows, but this will eventually be documented as the project is developed. That said, let's get started.
+The project is developed with Debian 11, but should work on any other Linux distributions. Some features in the future may not work on Windows, but this will eventually be documented as the project is developed. The project also includes live reload feauture. This requires NodeJS. That said, let's get started.
 
-- This project uses Python 3. Python versions earlier than 3.6 may or may not work. Install Python 3 with `sudo apt install python3` or go to https://python.org/downloads.
-- Download the repository with git. Install git with `sudo apt install git` if you don't already have it, then clone the project: `git clone https://github.com/asiangoldfish/PandaServer.git`
-- Change to the PandaServer directory with `cd PandaServer`
-- Create a virtual environment with `python3 -m venv venv`. All dependencies will be installed here.
-- If you don't already have pip installed, install it with `sudo apt install python3-pip`.
-- Activate the virtual environment with `source venv/bin/activate`
-- Install all dependencies with `pip3 install -r requirements.txt`.
-- At the moment the main script is `server.py`. Run this script with `python3 server.py`.
+- The project includes a utility command `panda-manager`. This helps with managing the project, its dependencies and additional utilities. It is still recommended to install all dependencies on beforehand to avoid confusions.
+- Install the following packages: curl, git, python3, python3-pip, python3-venv, nodejs, nodemon
+```
+sudo apt update
+sudo apt install curl git python3 python3-pip python3-venv nodejs
+```
+- Clone the repository
+    ```
+    git clone https://github.com/asiangoldfish/PandaServer.git
+    cd PandaServer/
+    ```
+- To enable live reload, Panda Server depends on Nodemon. Panda-manager by default requires Nodemon globally installed, however the script can be tweaked to support Nodemon locally installed in the project directory.
+
+    - Globally install Nodemon:
+        ```
+        npm -i -g nodemon
+        ```
+
+    - Locally install Nodemon:
+        ```
+        npm install
+        ```
+        Use your text editor of choice and search for a line that says: 
+        ```
+        nodemon server.py ${port}
+        ```
+        Change this line to the following:
+        ```
+        npx nodemon server.py ${port}
+        ```
+- In order to use `panda-manager`, the command must be prefixed with *bash*, i.e bash panda-manager. To use the command without the prefix, add it to PATH. Environment variables may reside in different locations. This guideline suggests .bash_alias, although other files like .bashrc can be used
+    - Create a file named .bash_alias in your home directory if does not already exist
+    - Use the following lines of commands, assigning the project's full path to the variable `path` and replacing .bash_alias with your preferred file:
+        ```
+        chmod +x panda-manager
+        path="full/path/to/PandaServer/"
+        echo "" >> $HOME/.bash_aliases
+        echo "# Panda Server" >> $HOME/.bash_aliases
+        echo "PATH=$PATH:${path}" >> $HOME/.bash_aliases
+        source $HOME/.bash_aliases
+        ```
+- `panda-manager` can now be fully utilized! Use it to install dependencies. When prompted, enter Y
+```
+panda-manager --download modules
+```
+- Use `panda-manager` to launch the server
+```
+panda-manager --start
+```
+To customize the server settings, you can change values in the configuration file *settings.ini*. Click [here](./docs/config.md) to read the documentation for this file.
+To read the documentation for `panda-manager`, click [here](./docs/panda_manager.md)
 
 Happy hacking! :)
 
@@ -36,13 +79,7 @@ Happy hacking! :)
 
 ## How it works
 
-The core of the server is the socket module. This module takes care of the networking part. By default, the project is configured to utilize the TCP protocol with IPv4. Host address is configured in the settings.ini file under the "Default" section. Port number is also configured here. A socket is then created and bound to the host and and port, and then is set to listen for clients. In the main script (/server.py), the magic happens inside the while loop. If there are more while loops, then it's the first loop that is responsible for keeping the server running indefinitely.
-
-The logic for handling HTTP requests and managing the server security is written manually. This is why the server is insecure.
-
-As the project is developed, vulnerabilities are slowly patched, new features are implemented, new bugs are introduced and eventually are fixed. If you'd like to practise on your exploitation skills, feel free to download or clone the project and go ham with it.
-
-I strongly recommend to run this project in a virtual machine so you don't accidentally screw your computer up if you choose to use it as a practise target.
+As mentioned earlier, the project includes a utility command `panda_module`. 
 
 ## Useful Resources
 - Handling HTTP requests: [Stack Overflow](https://stackoverflow.com/questions/41386086/handling-client-requests-in-http-server)

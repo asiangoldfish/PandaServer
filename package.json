@@ -1,0 +1,26 @@
+{
+  "name": "pandaserver",
+  "version": "1.0.0",
+  "description": "**WARNING!** *DO NOT* use this server for production or expose it to the public!! This server is vulnerable and *will* expose your system to exploits and serious damage. Use this server only on your local network and local machine.",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/asiangoldfish/PandaServer.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/asiangoldfish/PandaServer/issues"
+  },
+  "homepage": "https://github.com/asiangoldfish/PandaServer#readme",
+  "devDependencies": {
+    "nodemon": "^2.0.15"
+  }
+}
