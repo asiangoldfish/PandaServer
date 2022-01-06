@@ -23,12 +23,7 @@ source_venv() {
 
 # Checks if a command is available
 verify_cmd() {
-    if ! command -v "${1}" &> /dev/null; then
-        echo "Error 2: Command ${1} not found."
-        return 1
-    else
-        return 0
-    fi
+    echo "Error 2: Command ${1} not found."
 }
 
 # Starts the PandaServer
@@ -40,10 +35,12 @@ Starts the PandaServer. The server is run with the script server.py. This comman
 takes optional arguments.
 
 Arguments:
-    -b, --browser [VALUE]   Right after --start, enter a browser name and open a new tab in it.
-        -p, --port [VALUE]  Open another the server in another port. This option will override
-                            any port settings in the settings.ini config file.
-    -lr, --live-reload      Enable live reload. Disabled by default.
+    -b, --browser [VALUE]   right after --start, enter a browser name and open
+                            a new tab in it.
+    -p, --port [VALUE]      open another the server in another port. This
+                            option will override any port settings in the 
+                            settings.ini config file.
+    -l, --live-reload       enable live reload. Disabled by default.
 
 For more about the command in detail, visit the documentation at
 https://github.com/asiangoldfish/PandaServer.
@@ -67,11 +64,7 @@ Some errors may occur. Visit the documentation for help with troubleshooting the
     fi
 
     # Check if Python3 is installed on the system
-    verify_cmd "python3"
-    verify_val=$?
-    if [ ${verify_val} -eq 1 ]; then
-        return
-    fi
+    command -v "python3" &> /dev/null || verify_cmd "python3" return
 
     # Checks that the main file exists
     if ! [ -f server.py ]; then
@@ -86,12 +79,15 @@ Some errors may occur. Visit the documentation for help with troubleshooting the
     # the browser with
 
     # Runs through each argument passed and checks for flags and value accordingly
+    # Default values
     browser=""
     port=""
     live_reload="false"
     host="localhost"
-    while ! [[ $2 == "" ]]; do
-        case $2 in
+
+    # The loop will break if no commands was passed or the command does not start with the sign -
+    while ! [[ ${2} == "" ]] && [[ ${2:0:1} == "-" ]]; do
+        case ${2} in
             -b | --browser)
                 if ! [[ $3 == "" ]]; then
                     browser="${3}"
@@ -100,6 +96,10 @@ Some errors may occur. Visit the documentation for help with troubleshooting the
             -p | --port)
                 if ! [[ $3 == "" ]]; then
                     port="${3}"
+                else
+                    # Interrupts program because port was specified but not passed
+                    echo "Missing port number"
+                    return 1
                 fi
                 ;;
             -h | --host)
@@ -107,12 +107,13 @@ Some errors may occur. Visit the documentation for help with troubleshooting the
                     host="${3}"
                 fi
                 ;;
-            -lr | --live-reload)
+            -l | --live-reload)
                 live_reload="true"
                 ;;
-            # *)
-            #     echo ""
-            #     ;;
+            *)
+                echo "Invalid command: ${2}"
+                return
+                ;;
         esac
         shift
     done
@@ -130,22 +131,15 @@ Some errors may occur. Visit the documentation for help with troubleshooting the
     # Opens browser if appropriate argument is passed
     if ! [[ ${browser} == "" ]]; then
         # Checks if command is available
-        verify_cmd "${browser}"
-        verify_val=$?
-        if [ ${verify_val} -eq 1 ]; then
-            return 1
-        fi
+        command -v "${browser}" &> /dev/null || (verify_cmd "${browser}" && return 1)
         # Run the browser
         ${browser} http://${host}:${port} > /dev/null 2>&1
     fi
     
     # Enables live-reload if enabled
     if [[ ${live_reload} == "true" ]]; then
-        verify_cmd "nodemon"
-        verify_val=$?
-        if [ ${verify_val} -eq 1 ]; then
-            return 1
-        fi
+        # Checks if nodemon is globally installed
+        command -v "nodemon" &> /dev/null || verify_cmd "nodemon" return 1
 
         nodemon server.py ${port}
     else
@@ -171,11 +165,7 @@ download_server() {
     fi
 
     # Check if curl is installed on the system
-    verify_cmd "curl"
-    verify_val=$?
-    if [ ${verify_val} -eq 1 ]; then
-        return 1;
-    fi
+    command -v "curl" &> /dev/null || verify_cmd "curl" return
 
     # Pings to check if the script is still available
     serverpy_url="https://raw.githubusercontent.com/asiangoldfish/PandaServer/main/server.py"
@@ -192,11 +182,7 @@ download_server() {
 
 download_pandahttp() {
     # Check if curl is installed on the system
-    verify_cmd "curl"
-    verify_val=$?
-    if [ ${verify_val} -eq 1 ]; then
-        return 1;
-    fi
+    command -v "curl" &> /dev/null || verify_cmd "curl" return
 
     # Checks that the current directory is PandaServer to ensure that
     # files are downloaded in the correct location
@@ -288,10 +274,7 @@ if any sources are unavailable."""
                 return 0
             else
                 # Check if python3-venv is installed on the system
-                if ! command -v python3 -m venv venv &> /dev/null; then
-                    echo "Error 2: Python module 'venv' not found."
-                    return 1
-                fi
+                command -v "python3" &> /dev/null || verify_cmd "python3" return
                 
                 # Creates virtual environment
                 echo "Creating virtual environment..."
@@ -304,15 +287,6 @@ if any sources are unavailable."""
         # Download dependencies if requirements.txt file exists
         if ! [[ -f "requirements.txt" ]]; then
             echo "File requirements.txt was not found."
-        fi
-
-        verify_cmd "pip3"
-        verify_return=$?
-        if [ ${verify_return} -eq 1 ]; then
-            return 1
-        else
-            pip3 install -r requirements.txt
-            echo -e "\nSuccessfully installed all dependencies"
         fi
 
         deactivate
@@ -354,7 +328,7 @@ Options:
             echo "${repo_baseurl}"
             ;;
         -l | --license)
-            echo "${repo_baseurl}/blob/main/LICENSE"
+            cat "${SCRIPT_DIR}/LICENSE"
             ;;
         *)
             if [[ $2 == "" ]]; then
@@ -379,7 +353,7 @@ path_check() {
 
     if ! [[ $cwd_dir == $project_dir ]]; then
         echo "This command must be run from within the project directory. Command to find path:"
-        echo "panda-manager --info --directory"
+        echo "panda-manager --info --path"
         return 1
     else
         return 0
