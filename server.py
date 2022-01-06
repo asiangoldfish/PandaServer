@@ -1,6 +1,6 @@
 import socket
 
-from sys import exit
+from sys import exit, argv
 import os
 
 # Handles config file
@@ -23,7 +23,17 @@ if conf.get("Default", "clear_terminal") == "true":
 
 # Host address, port and headersize for messages sent by server
 HOST = conf.get("Default", "host")
-PORT = int(conf.get("Default", "port"))
+
+if len(argv) <= 1:
+    PORT = int(conf.get("Default", "port"))
+else:
+    try:
+        int(argv[1])
+    except ValueError:
+        exit(f"Invalid argument {argv[1]}. Port number must be an integer")
+        
+    PORT=int(argv[1])
+
 HEADERSIZE = int(conf.get("Default", "headersize"))
 
 # Create socket and bind it to host
@@ -44,7 +54,7 @@ while True:
 
     # HTTP Requests
     # Receive request from client.
-    print(address)
+    # print(address)
     try:
         client_request = client_socket.recv(1024).decode("utf-8")
     except ConnectionResetError:
@@ -61,7 +71,6 @@ while True:
         request_method = request_string[0]
         request_file = request_string[1]
     except IndexError:
-        print(f"Closing client: {address}")
         client_socket.close()
         continue
 
@@ -72,8 +81,9 @@ while True:
     if file_name == "":
         file_name = "index.html"
     # Respond with the requested file. Catch error if file non-existent
+    src_dir = conf.get("Default", "location")
     try:
-        file = open("%s" % (file_name), 'rb')  # 'rb' = read binary
+        file = open("%s" % (f"{src_dir}/{file_name}"), 'rb')  # 'rb' = read binary
         response = response = file.read()
         file.close()
 
@@ -88,7 +98,6 @@ while True:
             mimetype = "text/html"
 
         header += "Content-Type: %s\n\n" % mimetype  # + "<strong>\n\n</strong"
-        print(f"Successfully sent index.html to {address}")
 
     except Exception as e:
         # If page is not found
@@ -106,7 +115,7 @@ while True:
     final_response = header.encode("utf-8")
     final_response += response
     client_socket.send(final_response)
+    # printf
 
     # Close connection
-    print(f"Closing client: {address}")
     client_socket.close()
