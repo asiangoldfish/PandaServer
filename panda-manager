@@ -3,33 +3,9 @@
 # PandaServer utility script. Manage files using this script.
 # To get started, run this script in the terminl: panda-manager --help
 
-# Help page
-usage() {
-    cat <<USAGE
-Usage: panda-manager [OPTION] [...args]
-
-Note: PandaServer command-line utility tool.
-
-Options:
-    -h, --help                  Help page for the utility tool
-    -s, --start [browser]       Start the server. If browser is passed,
-                                then open in a new browser tab in the given
-                                browser
-        -p [PORT]               Port number
-    -d, --download              Download server.py
-
-To learn more about the specific commands, use the "help" keyword after the option.
-
-Example:
-panda-manager --start help
-
-Error Codes:
-A detailed overview of error codes can be found in docs/errors.md, or by
-going to https://github.com/asiangoldfish/PandaServer/blob/main/docs/errors.md
-
-USAGE
-    return
-}
+# Project version
+version="1.0.0"
+repo_baseurl="https://github.com/asiangoldfish/PandaServer"
 
 source_venv() {
     # Activate virtual environment
@@ -280,13 +256,14 @@ Download missing dependencies automatically from the internet. This command
 also checks if the source is available and will return an error if it's not.
 
 Arguments:
-    server.py                   Downloads the main script of the server. With-
-                                out this script, the engine will not work.
-    pandahttp                   Downloads the custom module pandahttp that
-                                the project relies on.
-    modules                     Installs all dependencies required for the project
+    server.py               Downloads the main script of the server. With-
+                            out this script, the engine will not work.
+    pandahttp               Downloads the custom module pandahttp that
+                            the project relies on.
+    modules                 Installs all dependencies required for the project
 
-An issue can be raised at https://github.com/asiangoldfish/PandaServer/issues if any sources are unavailable."""
+An issue can be raised at https://github.com/asiangoldfish/PandaServer/issues
+if any sources are unavailable."""
 
         return 0
         ;;
@@ -337,23 +314,110 @@ An issue can be raised at https://github.com/asiangoldfish/PandaServer/issues if
             pip3 install -r requirements.txt
             echo -e "\nSuccessfully installed all dependencies"
         fi
+
+        deactivate
         ;;
+    esac
+}
+
+info() {
+    # Help page for the info command
+    info_help () (
+        echo """Usage: panda-manager --info [OPTION]
+
+This command provides additional info about the project.
+
+Options:
+    -h, --help              help page for the --info command
+    -v, --version           project version
+    -p, --path              path to the project directory
+    -d, --documentation     link to the project's documentation
+    -r, --remote-repository link to the remote repository
+    -l, --license           link to the project's license"""
+    )
+    SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+    case $2 in
+        -h | --help)
+            info_help
+            ;;
+        -v | --version)
+            echo "${version}"
+            ;;
+        -p | --path)
+            echo "Project directory path:"
+            echo $SCRIPT_DIR
+            ;;
+        -d | --documentation)
+            echo "${repo_baseurl}"
+            ;;
+        -r | --remote-repository)
+            echo "${repo_baseurl}"
+            ;;
+        -l | --license)
+            echo "${repo_baseurl}/blob/main/LICENSE"
+            ;;
+        *)
+            if [[ $2 == "" ]]; then
+                info_help
+            else
+                echo "Invalid argument: $2"
+            fi
+            ;;
     esac
 }
 ###
 # Functions
 ###
 
+# Checks if the script is run from within the project directory
+path_check() {
+    # In case the file has been added to $PATH, check that the file is executed from
+    # within the project folder
+    project_dir="PandaServer"
+    cwd=$(pwd)
+    cwd_dir="$(echo $cwd | rev | cut -d'/' -f 1 | rev)"
+
+    if ! [[ $cwd_dir == $project_dir ]]; then
+        echo "This command must be run from within the project directory. Command to find path:"
+        echo "panda-manager --info --directory"
+        return 1
+    else
+        return 0
+    fi
+}
+
 # Main script. Using a function here, enables usage or return statement
 main(){
+
+    # Help page
+    usage() (
+        echo """Usage: panda-manager [OPTION] [...args]
+    
+Utility tool for managing the Panda Server. Some commands require the script
+to be run from within the project directory. These particular commands will run
+checks if required.
+
+Options:
+    -h, --help              help page for the Panda Server project
+    -v, --version           project version
+    -s, --start             launch the Panda Server
+    -d, --download          download server.py
+    -i, --info              additional info about the project
+
+Commands may have sub-commands. To learn more about these, append the --help flag.
+Example: panda-manager --start --help
+
+Error Codes:
+A detailed overview over all error codes can be found in docs/errors.md, or at
+https://github.com/asiangoldfish/PandaServer/blob/main/docs/errors.md
+
+This project is open-source under the GPLv3 license and can be found at
+https://github.com/asiangoldfish/PandaServer"""
+        return
+    )
+
     # Runs help message if no arguments were found
-    if [ $# -eq 0 ]; then
-        echo "This script requires arguments. Example: panda-manager --help."
-        return 0
-    # elif [[ $# -gt 2 ]]; then
-    #     echo "Too many arguments. This script only takes one argument."
-    #     return 0
-    fi
+    if [ $# -eq 0 ]; then usage : return; fi
 
     # Checks for flags and runs accordingly
     for arg in "$@"; do
@@ -362,12 +426,30 @@ main(){
             usage
             return
             ;;
+        -v | --version)
+            echo "${version}"
+            return
+            ;;
         -s | --start)
+            # Checks if the script is run from within the project directory
+            path_check
+            check_val=$?
+            if [[ ${check_val} == 1 ]]; then return 1; fi
+            
             start "$@"
             return
             ;;
         -d | --download)
+            # Checks if the script is run from within the project directory
+            path_check
+            check_val=$?
+            if [[ ${check_val} == 1 ]]; then return 1; fi
+            
             download "$@"
+            return
+            ;;
+        -i | --info)
+            info "$@"
             return
             ;;
         *)
