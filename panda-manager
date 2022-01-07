@@ -9,9 +9,11 @@ repo_baseurl="https://github.com/asiangoldfish/PandaServer"
 
 source_venv() {
     # Activate virtual environment
+    # Searches through all directories in project directory to find a
+    # virtual environment directory. 
     valid_dirnames=( "venv" ".venv" "env" ".env" )
     for name in "${valid_dirnames[@]}"; do
-        if [[ -d ${name} ]]; then
+        if [[ -d "${name}" ]] && [[ -f "${name}/bin/activate" ]]; then
             source "${name}/bin/activate"
             return 0
         fi
@@ -252,7 +254,7 @@ download() {
 
         # Creates a new pandahttp directory and also changes directory
         mkdir pandahttp
-        cd pandahttp || echo "Error 1: Directory pandahttp not found" && return
+        cd pandahttp || ( echo "Error 1: Directory pandahttp not found" && return )
 
         # Downloads all files in pandahttp module from remote repository
         echo ""
