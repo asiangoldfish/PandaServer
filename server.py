@@ -10,8 +10,11 @@ from configparser import ConfigParser
 from getpass import getpass
 
 # Custom modules
-from pandahttp import printc, HttpServer
-
+try:
+    from pandahttp import printc, HttpServer
+except ModuleNotFoundError:
+    print("Could not find module pandahttp. Use command to download missing dependencies:")
+    exit("panda-manager --download pandahttp")
 
 # Open config file, for development use
 conf = ConfigParser()
@@ -24,11 +27,11 @@ if conf.get("Default", "clear_terminal") == "true":
 # Host address, port and headersize for messages sent by server
 HOST = conf.get("Default", "host")
 
-if len(argv) <= 1:
+if len(argv) <= 1 or argv[1] == "":
     PORT = int(conf.get("Default", "port"))
 else:
     try:
-        int(argv[1])
+        int(argv[1]) or argv[1]
     except ValueError:
         exit(f"Invalid argument {argv[1]}. Port number must be an integer")
         
