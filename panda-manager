@@ -266,6 +266,11 @@ download() {
 
         cd "${cwd}" || echo "Failed to return to original directory." && return # Change back to original directory
     )
+
+    download_system_dependencies() (
+        source "$(dirname "${BASH_SOURCE[0]}")"'/scripts/system_dependencies.sh'
+        return 0
+    )
     
     case $2 in
     -h | --help)
@@ -275,11 +280,12 @@ Download missing dependencies automatically from the internet. This command
 also checks if the source is available and will return an error if it's not.
 
 Arguments:
-    server.py               Downloads the main script of the server. With-
+    server.py               downloads the main script of the server. With-
                             out this script, the engine will not work.
-    pandahttp               Downloads the custom module pandahttp that
+    pandahttp               downloads the custom module pandahttp that
                             the project relies on.
-    modules                 Installs all dependencies required for the project
+    modules                 installs all required python dependencies
+    system_dependencies     installs all required system dependencies
 
 An issue can be raised at https://github.com/asiangoldfish/PandaServer/issues
 if any sources are unavailable"""
@@ -297,7 +303,12 @@ if any sources are unavailable"""
     modules)
         download_modules
         ;;
+    system_dependencies)
+        download_system_dependencies
+        ;;
     esac
+
+    return 0
 }
 
 info() {
