@@ -7,146 +7,12 @@
 version="1.0.0"
 repo_baseurl="https://github.com/asiangoldfish/PandaServer"
 
-source_venv() {
-    # Activate virtual environment
-    # Searches through all directories in project directory to find a
-    # virtual environment directory. 
-    valid_dirnames=( "venv" ".venv" "env" ".env" )
-    for name in "${valid_dirnames[@]}"; do
-        if [[ -d "${name}" ]] && [[ -f "${name}/bin/activate" ]]; then
-            source "${name}/bin/activate"
-            return 0
-        fi
-    done
-
-    # If no virtual environments were found, return 1
-    return 1
-}
+# Global variables
+SCRIPT_PATH="$(dirname "$0")"  # The path to this script
 
 # Checks if a command is available
 verify_cmd() {
     echo "Error 2: Command ${1} not found."
-}
-
-# Starts the PandaServer
-start() {
-    if [[ $2 == "--help" ]] || [[ $2 == "-h" ]]; then
-        echo """Usage: panda-manager --start [OPTION]
-
-Starts the PandaServer. The server is run with the script server.py. This command also
-takes optional arguments.
-
-Arguments:
-    -b, --browser [VALUE]   right after --start, enter a browser name and open
-                            a new tab in it.
-    -p, --port [VALUE]      open another the server in another port. This
-                            option will override any port settings in the 
-                            settings.ini config file.
-    -l, --live-reload       enable live reload. Disabled by default.
-
-For more about the command in detail, visit the documentation at
-https://github.com/asiangoldfish/PandaServer.
-
-Due to the way that the commands are parsed, incorrect arguments will be ignored and default
-values will be applied.
-
-Errors:
-Some errors may occur. Visit the documentation for help with troubleshooting them."""
-
-        return 0
-    fi
-
-    # Enables virtual environment
-    source_venv
-    source_val=$?
-    if [ ${source_val} -eq 1 ]; then
-        echo "No virtual environment was found. Use the following command to setup one up:"
-        echo "panda-manager --download modules"
-        return 1
-    fi
-
-    # Check if Python3 is installed on the system
-    command -v "python3" &> /dev/null || verify_cmd "python3" return
-
-    # Checks that the main file exists
-    if ! [ -f server.py ]; then
-        echo -n "File server.py does not exist. "
-        echo "Download the file using the following command:"
-        echo "bash panda-manager -d server.py"
-        return 1
-    fi
-
-    # Checks for a second argument, which will tell the script to
-    # open a new tab in a chosen browser and what command to open
-    # the browser with
-
-    # Runs through each argument passed and checks for flags and value accordingly
-    # Default values
-    browser=""
-    port=""
-    live_reload="false"
-    host="localhost"
-
-    # The loop will break if no commands was passed or the command does not start with the sign -
-    while ! [[ ${2} == "" ]] && [[ ${2:0:1} == "-" ]]; do
-        case ${2} in
-            -b | --browser)
-                if ! [[ $3 == "" ]]; then
-                    browser="${3}"
-                fi
-                ;;
-            -p | --port)
-                if ! [[ $3 == "" ]]; then
-                    port="${3}"
-                else
-                    # Interrupts program because port was specified but not passed
-                    echo "Missing port number"
-                    return 1
-                fi
-                ;;
-            -h | --host)
-                if ! [[ $3 == "" ]]; then
-                    host="${3}"
-                fi
-                ;;
-            -l | --live-reload)
-                live_reload="true"
-                ;;
-            *)
-                echo "Invalid command: ${2}"
-                return
-                ;;
-        esac
-        shift
-    done
-    # Verifies port number
-    if [[ "${port}" =~ ^[0-9]+$ ]] && (("${port}" >= 1024 && "${port}" <= 65536)); then
-        # port="${port}"
-        :
-    elif [[ "${port}" == "" ]]; then
-        :
-    else
-        echo "Port number must be an integer between 1024 and 65536"
-        return 1
-    fi     
-
-    # Opens browser if appropriate argument is passed
-    if ! [[ ${browser} == "" ]]; then
-        # Checks if command is available
-        command -v "${browser}" &> /dev/null || (verify_cmd "${browser}" && return 1)
-        # Run the browser
-        ${browser} http://"${host}":"${port}" > /dev/null 2>&1
-    fi
-    
-    # Enables live-reload if enabled
-    if [[ ${live_reload} == "true" ]]; then
-        # Checks if nodemon is globally installed
-        command -v "nodemon" &> /dev/null || verify_cmd "nodemon" return 1
-
-        nodemon server.py "${port}"
-    else
-        python3 server.py "${port}"
-    fi
 }
 
 download_server() {
@@ -182,199 +48,28 @@ download_server() {
     fi    
 }
 
-# Handles downloading dependencies
-download() {
-    # Helper functions
-
-    download_modules() (
-            # Activates virtual environment first to install all dependencies
-            # locally in the project directory
-            # Firstly, checks if the python3 binary exists in the project folder
-            if ! { [ -f "venv/bin/python3" ] || [ -f ".venv/bin/python3" ] || [ -f "env/bin/python3" ] || [ -f ".env/bin/python3" ]; }; then
-                echo -n "Could not find Python executable in a virtual environment. Install virtual environment? [Y/n] "
-                read -r venv_prompt
-                if ! { [[ ${venv_prompt} == "" ]] || [[ ${venv_prompt} == "y" ]] || [[ ${venv_prompt} == "Y" ]]; }; then
-                    echo "No dependencies were installed"
-                    return 1
-                else
-                    # Check if python3-venv is installed on the system
-                    command -v "python3" &> /dev/null || verify_cmd "python3" return
-
-                    # Creates virtual environment
-                    echo "Creating virtual environment..."
-                    python3 -m venv venv
-                fi
-            fi
-
-            source_venv
-
-            # Download dependencies if requirements.txt file exists
-            if ! [[ -f "requirements.txt" ]]; then
-                echo "File requirements.txt was not found."
-            fi
-
-            pip3 install -r requirements.txt
-
-            deactivate
-        return 0
-    )
-
-    download_pandahttp() (
-        # Check if curl is installed on the system
-        command -v "curl" &> /dev/null || verify_cmd "curl" return
-
-        # Checks that the current directory is PandaServer to ensure that
-        # files are downloaded in the correct location
-        cwd=$(pwd) # Current directory
-        dirname="$(echo "${cwd}" | rev | cut -d'/' -f 1 | rev)"
-        if ! [[ ${dirname} == "PandaServer" ]]; then
-            echo "Currently not in directory PandaServer. Please change to the project directory before proceeding."
-            return 1
-        fi
-
-        # Pings all sites to scripts and directories and ensure their availability
-        urls=(
-            "https://raw.githubusercontent.com/asiangoldfish/PandaServer/main/pandahttp/__init__.py"
-            "https://raw.githubusercontent.com/asiangoldfish/PandaServer/main/pandahttp/httpserver.py"
-            "https://raw.githubusercontent.com/asiangoldfish/PandaServer/main/pandahttp/mysql.py"
-            "https://raw.githubusercontent.com/asiangoldfish/PandaServer/main/pandahttp/terminal.py"
-        )
-        # Pings each url to see if they are online
-        for url in "${urls[@]}"; do
-            filename="$(echo "{$url}" | rev | cut -d'/' -f 1 | rev)"
-            if curl -s --head --request GET "${url}" | grep "HTTP/2 200" > /dev/null; then
-            # Splits the url to get the file name
-
-            echo "Fetching ${filename}..."
-            else
-                echo "Error 3: Could not find $filename in the remote repository"
-                return 1
-            fi 
-        done
-
-        # Creates a new pandahttp directory and also changes directory
-        mkdir pandahttp
-        cd pandahttp || ( echo "Error 1: Directory pandahttp not found" && return )
-
-        # Downloads all files in pandahttp module from remote repository
-        echo ""
-        for url in "${urls[@]}"; do
-            filename="$(echo "${url}" | rev | cut -d'/' -f 1 | rev)"
-            echo "Downloading ${filename}..."
-            curl -o "${filename}" "${url}"
-        done
-
-        cd "${cwd}" || echo "Failed to return to original directory." && return # Change back to original directory
-    )
-
-    download_system_dependencies() (
-        source "$(dirname "${BASH_SOURCE[0]}")"'/scripts/system_dependencies.sh'
-        return 0
-    )
-    
-    case $2 in
-    -h | --help)
-        echo """Usage: panda-manager --download [FILES]
-Example: panda-manager -d server.py
-Download missing dependencies automatically from the internet. This command 
-also checks if the source is available and will return an error if it's not.
-
-Arguments:
-    server.py               downloads the main script of the server. With-
-                            out this script, the engine will not work.
-    pandahttp               downloads the custom module pandahttp that
-                            the project relies on.
-    modules                 installs all required python dependencies
-    system_dependencies     installs all required system dependencies
-
-An issue can be raised at https://github.com/asiangoldfish/PandaServer/issues
-if any sources are unavailable"""
-
-        return 0
-        ;;
-    server.py)
-        download_server
-        return 0
-        ;;
-    pandahttp)
-        download_pandahttp
-        return 0
-        ;;
-    modules)
-        download_modules
-        ;;
-    system_dependencies)
-        download_system_dependencies
-        ;;
-    esac
-
-    return 0
-}
-
-info() {
-    # Help page for the info command
-    info_help () (
-        echo """Usage: panda-manager --info [OPTION]
-
-This command provides additional info about the project.
-
-Options:
-    -h, --help              help page for the --info command
-    -v, --version           project version
-    -p, --path              path to the project directory
-    -d, --documentation     link to the project's documentation
-    -r, --remote-repository link to the remote repository
-    -l, --license           link to the project's license"""
-    )
-    SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
-    case $2 in
-        -h | --help)
-            info_help
-            ;;
-        -v | --version)
-            echo "${version}"
-            ;;
-        -p | --path)
-            echo "Project directory path:"
-            echo "${SCRIPT_DIR}"
-            ;;
-        -d | --documentation)
-            echo "${repo_baseurl}"
-            ;;
-        -r | --remote-repository)
-            echo "${repo_baseurl}"
-            ;;
-        -l | --license)
-            cat "${SCRIPT_DIR}/LICENSE"
-            ;;
-        *)
-            if [[ $2 == "" ]]; then
-                info_help
-            else
-                echo "Invalid argument: $2"
-            fi
-            ;;
-    esac
-}
 ###
 # Functions
 ###
 
-# Checks if the script is run from within the project directory
+# Checks if the script is run from within the project directory. If not, then change directory
+# to the project's repository
 path_check() {
-    # In case the file has been added to $PATH, check that the file is executed from
-    # within the project folder
+    # Args:
+    #   project (str): changes to the project directory this hasn't already been done
+    #   origin (str): changes back to the original directory before execution of this script
     project_dir="PandaServer"
-    cwd=$(pwd)
+    cwd="$(pwd)"
     cwd_dir="$(echo "$cwd" | rev | cut -d'/' -f 1 | rev)"
 
     if ! [[ $cwd_dir == "$project_dir" ]]; then
-        echo "This command must be run from within the project directory. Command to find path:"
-        echo "panda-manager --info --path"
-        return 1
-    else
-        return 0
+        cd "$SCRIPT_PATH" &> /dev/null || {
+            printf "Could not find the path to this script\n"
+            return 1
+        }
     fi
+
+    return 0
 }
 
 # Main script. Using a function here, enables usage or return statement
@@ -382,18 +77,18 @@ main(){
 
     # Help page
     usage() (
-        echo """Usage: panda-manager [OPTION] [...args]
+        echo "Usage: panda-manager [OPTION] [...args]
     
 Utility tool for managing the Panda Server. Some commands require the script
 to be run from within the project directory. These particular commands will run
 checks if required.
 
 Options:
-    -h, --help              help page for the Panda Server project
-    -v, --version           project version
-    -s, --start             launch the Panda Server
-    -d, --download          download server.py
-    -i, --info              additional info about the project
+    help, --help            help page for the Panda Server project
+    version, --version      project version
+    start [args]            launch the Panda Server
+    download [args]         download server.py
+    info [args]             additional info about the project
 
 Commands may have sub-commands. To learn more about these, append the --help flag.
 Example: panda-manager --start --help
@@ -403,53 +98,49 @@ A detailed overview over all error codes can be found in docs/errors.md, or at
 https://github.com/asiangoldfish/PandaServer/blob/main/docs/errors.md
 
 This project is open-source under the GPLv3 license and can be found at
-https://github.com/asiangoldfish/PandaServer"""
-        return
+https://github.com/asiangoldfish/PandaServer"
+        return 0
     )
 
     # Runs help message if no arguments were found
-    if [ $# -eq 0 ]; then usage : return; fi
+    if [ $# -eq 0 ]; then usage && return; fi
 
     # Checks for flags and runs accordingly
     for arg in "$@"; do
         case $arg in
-        -h | --help)
+        --help | help )
             usage
-            return
+            return 0
             ;;
-        -v | --version)
+        --version | version )
             echo "${version}"
-            return
+            return 0
             ;;
-        -s | --start)
+        start )
             # Checks if the script is run from within the project directory
-            path_check
-            check_val=$?
-            if [[ ${check_val} == 1 ]]; then return 1; fi
-            
-            start "$@"
-            return
+            path_check || return 1            
+            source "scripts/start.sh"
+            return 0
             ;;
-        -d | --download)
+        download )
             # Checks if the script is run from within the project directory
-            path_check
-            check_val=$?
-            if [[ ${check_val} == 1 ]]; then return 1; fi
-            
-            download "$@"
-            return
+            path_check || return 1
+            source "scripts/download.sh" "$2"
+            return 0
             ;;
-        -i | --info)
-            info "$@"
-            return
+        info )
+            source "scripts/info.sh"
+            return 0
             ;;
-        *)
-            echo "Invalid command: $arg"
-            return
+        * )
+            printf "panda-manager: invalid argument %s\n" "$*"
+            return 0
             ;;
         esac
     done
+
+    return 1
 }
 
 # Run script
-main "$@"
+main "$@" || exit 1

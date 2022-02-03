@@ -1,7 +1,12 @@
 #!/usr/bin/bash
 
+# Global variables
+SCRIPT_DOWNLOAD="$SCRIPT_PATH/scripts/download.sh"
+
+# Help page for this command
+
 if [[ $2 == "--help" ]] || [[ $2 == "-h" ]]; then
-    echo """Usage: panda-manager --start [OPTION]
+    echo "Usage: panda-manager --start [OPTION]
 
 Starts the PandaServer. The server is run with the script server.py. This command also
 takes optional arguments.
@@ -21,35 +26,36 @@ Due to the way that the commands are parsed, incorrect arguments will be ignored
 values will be applied.
 
 Errors:
-Some errors may occur. Visit the documentation for help with troubleshooting them."""
+Some errors may occur. Visit the documentation to troubleshoot them."
 
     exit 0
 fi
+# Checks if Python3 is installed on the system
+command -v "python3" &>/dev/null || source "$SCRIPT_PATH/scripts/system_dependencies.sh"
 
-# Enables virtual environment
-source "source_venv.sh"
-source_val=$?
-if [ ${source_val} -eq 1 ]; then
-    echo "No virtual environment was found. Use the following command to setup one up:"
-    echo "panda-manager --download modules"
-    exit 1
+# Checks that the server.py exists
+if ! [ -f "server.py" ]; then
+    bash "$SCRIPT_DOWNLOAD" "server.py" || exit 1
 fi
 
-# Check if Python3 is installed on the system
-command -v "python3" &>/dev/null || verify_cmd "python3" exit
+# Enables virtual environment. If unsuccessful, prompt to install the venv and required
+# dependencies, then launch the server
+source "$SCRIPT_PATH/scripts/source_venv.sh" || {
+    bash "$SCRIPT_DOWNLOAD" "modules" || {
+        printf "Could not install required dependencies\n"
+        exit 1
+    }
 
-# Checks that the main file exists
-if ! [ -f server.py ]; then
-    echo -n "File server.py does not exist. "
-    echo "Download the file using the following command:"
-    echo "bash panda-manager -d server.py"
-    exit 1
-fi
+    # Attempt 2. If this fails, then terminates program
+    source "$SCRIPT_PATH/scripts/source_venv.sh" || {
+        printf "Failed to activate virtual environment\n"
+        exit 1
+    }
+}
 
 # Checks for a second argument, which will tell the script to
 # open a new tab in a chosen browser and what command to open
-# the browser with
-
+# the browser with.
 # Runs through each argument passed and checks for flags and value accordingly
 # Default values
 browser=""
@@ -83,12 +89,13 @@ while ! [[ ${2} == "" ]] && [[ ${2:0:1} == "-" ]]; do
         live_reload="true"
         ;;
     *)
-        echo "Invalid command: ${2}"
+        echo "Invalid argument: ${2}"
         exit
         ;;
     esac
     shift
 done
+
 # Verifies port number
 if [[ "${port}" =~ ^[0-9]+$ ]] && (("${port}" >= 1024 && "${port}" <= 65536)); then
     # port="${port}"
