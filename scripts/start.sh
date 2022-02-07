@@ -1,7 +1,8 @@
 #!/usr/bin/bash
 
 # Global variables
-SCRIPT_DOWNLOAD="$SCRIPT_PATH/scripts/download.sh"
+SCRIPT_DOWNLOAD="scripts/download.sh"
+SCRIPT_SOURCE="scripts/source_venv.sh"
 
 # Help page for this command
 
@@ -40,15 +41,16 @@ fi
 
 # Enables virtual environment. If unsuccessful, prompt to install the venv and required
 # dependencies, then launch the server
-source "$SCRIPT_PATH/scripts/source_venv.sh" || {
+source "$SCRIPT_SOURCE" || {
     bash "$SCRIPT_DOWNLOAD" "modules" || {
         printf "Could not install required dependencies\n"
         exit 1
     }
 
     # Attempt 2. If this fails, then terminates program
-    source "$SCRIPT_PATH/scripts/source_venv.sh" || {
+    source "$SCRIPT_SOURCE" || {
         printf "Failed to activate virtual environment\n"
+        if [[ -d "venv/" ]]; then rm -rf "venv/"; fi
         exit 1
     }
 }

@@ -73,9 +73,13 @@ download_pandahttp() (
     cwd=$(pwd) # Current directory
     dirname="$(echo "${cwd}" | rev | cut -d'/' -f 1 | rev)"
     if ! [[ ${dirname} == "PandaServer" ]]; then
-        echo "Currently not in directory PandaServer. Please change to the project directory before proceeding."
+        printf "DEBUG: Something went wrong... Current present directory is not PandaServer\n"
         return 1
     fi
+
+    # Creates a new pandahttp directory and also changes directory
+    mkdir pandahttp &> /dev/null  # Prevents outputting error messages if the directory already exists
+    cd pandahttp &> /dev/null || { printf "Error 1: Directory pandahttp not found\n"; return 1; }
 
     # Pings all sites to scripts and directories and ensure their availability
     urls=(
@@ -86,37 +90,30 @@ download_pandahttp() (
     )
     # Pings each url to see if they are online
     for url in "${urls[@]}"; do
-        filename="$(echo "{$url}" | rev | cut -d'/' -f 1 | rev)"
+        filename="$(printf "%s" "$url" | rev | cut -d'/' -f 1 | rev)"
         if curl -s --head --request GET "${url}" | grep "HTTP/2 200" >/dev/null; then
             # Splits the url to get the file name
 
-            echo "Fetching ${filename}..."
+            printf "Fetching %s\n" "${filename}"
         else
             echo "Error 3: Could not find $filename in the remote repository"
             return 1
         fi
     done
 
-    # Creates a new pandahttp directory and also changes directory
-    mkdir pandahttp
-    cd pandahttp || (echo "Error 1: Directory pandahttp not found" && return)
-
     # Downloads all files in pandahttp module from remote repository
-    echo ""
     for url in "${urls[@]}"; do
         filename="$(echo "${url}" | rev | cut -d'/' -f 1 | rev)"
-        echo "Downloading ${filename}..."
-        curl -o "${filename}" "${url}"
+        printf "Downloading %s\n" "${filename}"
+        curl -s -o "${filename}" "${url}" || { printf "Failed to download file from %s\n" "$url"; return 1;}
     done
-
-    cd "${cwd}" || echo "Failed to return to original directory." && return # Change back to original directory
 )
 
 download_server() {
     # Pings to check if the script is still available
 
     if [[ -f "server.py" ]]; then
-        printf "File 'server.py' was found"
+        printf "File 'server.py' was found\n"
         return 0
     fi
 

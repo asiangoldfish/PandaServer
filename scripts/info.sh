@@ -27,13 +27,13 @@ case $2 in
     echo "${SCRIPT_DIR}"
     ;;
 -d | --documentation)
-    echo "${repo_baseurl}"
+    echo "${repo_baseurl}/wiki"
     ;;
 -r | --remote-repository)
     echo "${repo_baseurl}"
     ;;
 -l | --license)
-    cat "${SCRIPT_DIR}/LICENSE"
+    cat "LICENSE"
     ;;
 *)
     if [[ $2 == "" ]]; then

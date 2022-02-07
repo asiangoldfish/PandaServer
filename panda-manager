@@ -129,6 +129,7 @@ https://github.com/asiangoldfish/PandaServer"
             return 0
             ;;
         info )
+            path_check || return 1
             source "scripts/info.sh"
             return 0
             ;;
