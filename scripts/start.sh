@@ -6,7 +6,7 @@ SCRIPT_SOURCE="scripts/source_venv.sh"
 
 # Help page for this command
 
-if [[ $2 == "--help" ]] || [[ $2 == "-h" ]]; then
+usage() (
     echo "Usage: panda-manager --start [OPTION]
 
 Starts the PandaServer. The server is run with the script server.py. This command also
@@ -28,9 +28,60 @@ values will be applied.
 
 Errors:
 Some errors may occur. Visit the documentation to troubleshoot them."
+)
 
+if [[ "$2" == "help" ]]; then
+    usage
     exit 0
 fi
+
+# Checks for a second argument, which will tell the script to
+# open a new tab in a chosen browser and what command to open
+# the browser with.
+# Runs through each argument passed and checks for flags and value accordingly
+# Default values
+browser=""
+port=""
+live_reload="false"
+host="localhost"
+
+# The loop will break if no commands was passed or the command does not start with the sign -
+while ! [[ ${2} == "" ]] || [[ ${2:0:1} == "-" ]]; do
+    case ${2} in
+    browser )
+        if ! [[ $3 == "" ]]; then
+            browser="${3}"
+        fi
+        ;;
+    live-reload )
+        live_reload="true"
+        ;;
+    host )
+        if ! [[ $3 == "" ]]; then
+            host="${3}"
+        fi
+        ;;
+    port )
+        if ! [[ $3 == "" ]]; then
+            port="${3}"
+        else
+            # Interrupts program because port was specified but not passed
+            echo "Missing port number"
+            exit 1
+        fi
+        ;;
+    * )
+        echo "Invalid argument: ${2}"
+        exit 1
+        ;;
+    esac
+    shift
+done
+
+#############################################################################################
+#                         Configuring and starting up the server                            #
+#############################################################################################
+
 # Checks if Python3 is installed on the system
 command -v "python3" &>/dev/null || source "$SCRIPT_PATH/scripts/system_dependencies.sh"
 
@@ -55,49 +106,6 @@ source "$SCRIPT_SOURCE" || {
     }
 }
 
-# Checks for a second argument, which will tell the script to
-# open a new tab in a chosen browser and what command to open
-# the browser with.
-# Runs through each argument passed and checks for flags and value accordingly
-# Default values
-browser=""
-port=""
-live_reload="false"
-host="localhost"
-
-# The loop will break if no commands was passed or the command does not start with the sign -
-while ! [[ ${2} == "" ]] && [[ ${2:0:1} == "-" ]]; do
-    case ${2} in
-    -b | --browser)
-        if ! [[ $3 == "" ]]; then
-            browser="${3}"
-        fi
-        ;;
-    -p | --port)
-        if ! [[ $3 == "" ]]; then
-            port="${3}"
-        else
-            # Interrupts program because port was specified but not passed
-            echo "Missing port number"
-            exit 1
-        fi
-        ;;
-    -h | --host)
-        if ! [[ $3 == "" ]]; then
-            host="${3}"
-        fi
-        ;;
-    -l | --live-reload)
-        live_reload="true"
-        ;;
-    *)
-        echo "Invalid argument: ${2}"
-        exit
-        ;;
-    esac
-    shift
-done
-
 # Verifies port number
 if [[ "${port}" =~ ^[0-9]+$ ]] && (("${port}" >= 1024 && "${port}" <= 65536)); then
     # port="${port}"
@@ -116,6 +124,9 @@ if ! [[ ${browser} == "" ]]; then
     # Run the browser
     ${browser} http://"${host}":"${port}" >/dev/null 2>&1
 fi
+echo "Browser: $browser"
+
+exit 1
 
 # Enables live-reload if enabled
 if [[ ${live_reload} == "true" ]]; then

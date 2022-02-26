@@ -7,24 +7,18 @@ info_help() (
 This command provides additional info about the project.
 
 Options:
-    -h, --help              help page for the --info command
-    -v, --version           project version
-    -p, --path              path to the project directory
-    -d, --documentation     link to the project's documentation
-    -r, --remote-repository link to the remote repository
-    -l, --license           link to the project's license"
+    documentation link      to the project's documentation
+    help                    this page
+    license                 link to the project's license
+    remote-repository       link to the remote repository
+    version                 project version"
 )
-SCRIPT_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &>/dev/null && pwd)
 case $2 in
 -h | --help)
     info_help
     ;;
 -v | --version)
     echo "${version}"
-    ;;
--p | --path)
-    echo "Project directory path:"
-    echo "${SCRIPT_DIR}"
     ;;
 -d | --documentation)
     echo "${repo_baseurl}/wiki"
