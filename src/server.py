@@ -1,3 +1,4 @@
+# For handling HTTP requests
 import socket
 
 from sys import exit, argv

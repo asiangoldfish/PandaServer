@@ -11,53 +11,49 @@ from configparser import Error
 import socket
 import errno
 from .terminal import printc
+from sys import exit as sysexit
 
 
 class HttpServer:
 
-    def __init__(self, host="localhost", port=8080, infinite_connection=True, concurrent_clients=5) -> None:
+    def __init__(self, host: str = "localhost", port: int = 8080, concurrent_clients: int = 5) -> None:
+        """Initialize server
+        """
+
         # Default server settings
-        self.host = host
-        self.port = port
-        self.infinite_connection = infinite_connection
+        self.host = host    # IP-address or domain name
+        self.port = port    # Port number
 
         # Amount of clients to listen for before being inavailable
         self.concurrent_clients = concurrent_clients
 
         # Start server and create socket
-        self.server_socket = self.start_server()
+        self.server_socket = None
 
-    def start_server(self):
-        """Asign required host settings to start the Http server
-
-        On initializing an instance, the class will initialize the server by creating a socket, binding it to
-        a given domain or IP address and port, and start listening to clients.
-
-        Args:
-            host (str, optional): Domain or IP to listen on. Defaults to "localhost".
-            port (int, optional): Port to listen on. Defaults to 8080.
-            infinite_connection (bool, optional): If false, the server will terminate after responding once to one client. Defaults to True.
-            concurrent_clients (int, optional): Amount of clients that can be connected to server concurrently. Defaults to 5.
-        """
-
-        # Create socket
+    def create_socket(self, blocking: int = 1, reusable: bool = 0):
         try:
-            server_socket = socket.socket(
+            new_socket = socket.socket(
                 socket.AF_INET, socket.SOCK_STREAM)
         except Error as e:
             print(e)
-            exit()
+            sysexit()
+
+        new_socket.setblocking(blocking)
 
         # Enable reusing socket after terminating the program.
         # If this is not included, there's a chance that an error will be raised
         # after running the program again on the same socket.
-        server_socket.setsockopt(
-            socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        if reusable:
+            new_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 
-        # Bind socket to host (domain/ip) and port
-        # Raise error if unsuccessful and terminate the program
+        self.server_socket = new_socket
+
+    def bind_socket(self):
+        if self.server_socket is None:
+            sysexit("There are no sockets assigned to this object.")
+
         try:
-            server_socket.bind((self.host, self.port))
+            self.server_socket.bind((self.host, self.port))
             printc("Binding socket to host and port success!", "ok")
         except PermissionError as e:
             # Permission denied
@@ -67,21 +63,31 @@ class HttpServer:
         except OSError as e:
             # Other unexpected errors
             printc(f"{e}. Please change the port.", "fail")
-            exit()
+            sysexit()
 
-        # Listen to clients
-        server_socket.listen(self.concurrent_clients)
+    def listen_socket(self):
+        self.server_socket.listen(self.concurrent_clients)
 
         # Print message on where the server is listening on
-        if self.host == "":
-            # Server is accessible anywhere on the local network
-            print(
-                f"\nSocket is listening on port {self.port} on the local network...\nGo to http://localhost:8080 to open website.")
-        else:
-            print(
-                f"\nSocket is listening on port {self.port}...\nGo to http://localhost:{self.port} to open website.")
+        print(
+            f"\nSocket is listening on port {self.port}...\nGo to http://localhost:{self.port} to open website.")
 
-        return server_socket
+    def loop(self):
+
+        some_string = str()
+
+        # Main loop
+        while True:
+            try:
+                client_socket, address = self.server_socket.accept()
+            except KeyboardInterrupt:
+                printc("\nSuccessfully terminated the program.", "ok")
+                exit()
+            except socket.error as msg:
+                print("%s" % (msg,))
+            except Exception as e:
+                print(e)
+                sysexit()
 
     def request_handle(request: str) -> str:
         """Processes requests and handle them.
