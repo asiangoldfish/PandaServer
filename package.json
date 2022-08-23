@@ -21,6 +21,6 @@
   },
   "homepage": "https://github.com/asiangoldfish/PandaServer#readme",
   "devDependencies": {
-    "nodemon": "^2.0.15"
+    "nodemon": "^2.0.19"
   }
 }
