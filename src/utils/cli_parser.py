@@ -54,6 +54,7 @@ class Cli_Parser():
                 print(
                     f"Invalid argument: {self.join_invalid_args(message, self.__seperator)}")
             case option.PLAIN:
+
                 print(f"Invalid argument: {message}")
 
     def map_args(self, keypair) -> None:
@@ -90,8 +91,3 @@ class Cli_Parser():
             # assign command line arguments to fields in the Http_Options struct
             self.map_args(keyword)
             
-
-
-
-if __name__ == "__main__":
-    parser = Cli_Parser()

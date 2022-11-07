@@ -8,7 +8,7 @@ def main(argc: int, argv: str):
     # Keys that will be considered as commmand line arguments
     options = {
         "--host": str(),
-        "--port": int(),
+        "--port": int,
         "--concurrent_clients": 1,
     }
 

@@ -5,79 +5,43 @@
 
 # Project version
 version="1.0.0"
-repo_baseurl="https://github.com/asiangoldfish/PandaServer"
 
 # Global variables
-SCRIPT_PATH="$(dirname "$0")"  # The path to this script
+SCRIPT_PATH="$(dirname "$0")" # The path to this script
+INIPARSER="$SCRIPT_PATH/src/utils/ini_parser.py"
 
-# Checks if a command is available
-verify_cmd() {
-    echo "Error 2: Command ${1} not found."
-}
+####
+# Activate python virtual environment
+function activate_venv() {
+    valid_venv="venv" # Valid virtual environment name
 
-download_server() {
-    # Enables user to quickly download file server.py in case the file is missing
-
-    # Checks if file already exists, prompts user to continue if file was found
-    if [ -f ./server.py ]; then
-        read -r -p "Found server.py already exists. Continue? [y/N] " input
- 
-        case $input in
-            [yY][eE][sS]|[yY])
-                echo ""
-                ;;
-            *)
-                return
-                ;;
-        esac
-    fi
-
-    # Check if curl is installed on the system
-    command -v "curl" &> /dev/null || verify_cmd "curl" return
-
-    # Pings to check if the script is still available
-    serverpy_url="https://raw.githubusercontent.com/asiangoldfish/PandaServer/main/server.py"
-    if curl -s --head --request GET $serverpy_url | grep "HTTP/2 200" > /dev/null; then
-        echo "Downloading file server.py from $serverpy_url"
-
-        curl -o ./server.py $serverpy_url
+    if [ -f "$valid_venv/bin/activate" ]; then
+        source "$valid_venv/bin/activate"
         return 0
     else
-        echo "Error 3: Could not find server.py in the remote repository"
+        # If no virtual environments were found, return 1
+        echo "panda-manager: Could not activate Python3 virtual environment"
         return 1
-    fi    
+    fi
 }
 
-###
-# Functions
-###
-
-# Checks if the script is run from within the project directory. If not, then change directory
-# to the project's repository
-path_check() {
-    # Args:
-    #   project (str): changes to the project directory this hasn't already been done
-    #   origin (str): changes back to the original directory before execution of this script
-    project_dir="PandaServer"
-    cwd="$(pwd)"
-    cwd_dir="$(echo "$cwd" | rev | cut -d'/' -f 1 | rev)"
-
-    if ! [[ $cwd_dir == "$project_dir" ]]; then
-        cd "$SCRIPT_PATH" &> /dev/null || {
-            printf "Could not find the path to this script\n"
-            return 1
-        }
-    fi
+####
+# Initialize the system
+#
+# Ensures that all commands are available
+####
+function initialize() {
+    verify_cmd "python3" || return 1
+    verify_cmd "pip3" || return 1
 
     return 0
 }
 
-# Main script. Using a function here, enables usage or return statement
-main(){
-
-    # Help page
-    usage() (
-        echo "Usage: panda-manager [OPTION] [...args]
+####
+# Help page
+####
+function usage() (
+    echo "Usage: panda-manager [OPTION] [...args]
     
 Utility tool for managing the Panda Server. Some commands require the script
 to be run from within the project directory. These particular commands will run
@@ -87,7 +51,6 @@ Options:
     help, --help            help page for the Panda Server project
     version, --version      project version
     start [args]            launch the Panda Server
-    download [args]         download server.py
     info [args]             additional info about the project
 
 Commands may have sub-commands. To learn more about these, append the --help flag.
@@ -99,8 +62,20 @@ https://github.com/asiangoldfish/PandaServer/blob/main/docs/errors.md
 
 This project is open-source under the GPLv3 license and can be found at
 https://github.com/asiangoldfish/PandaServer"
-        return 0
-    )
+
+    return 0
+)
+
+# Checks if a command is available
+verify_cmd() {
+    command -v "$1" &>/dev/null && return 0
+    echo "Error 2: Command ${1} not found." && return 1
+}
+
+####
+# Main script. Using a function here, enables usage or return statement
+####
+function main() {
 
     # Runs help message if no arguments were found
     if [ $# -eq 0 ]; then usage && return; fi
@@ -108,31 +83,29 @@ https://github.com/asiangoldfish/PandaServer"
     # Checks for flags and runs accordingly
     for arg in "$@"; do
         case $arg in
-        --help | help )
+        --help | help)
             usage
             return 0
             ;;
-        --version | version )
+        --version | version)
             echo "${version}"
             return 0
             ;;
-        start )
+
+        start)
             # Checks if the script is run from within the project directory
-            path_check || return 1            
+            initialize || return 1
             source "scripts/start.sh"
+            start_main "$@"
             return 0
             ;;
-        download )
-            # Checks if the script is run from within the project directory
-            path_check || return 1
-            source "scripts/download.sh" "$2"
-            return 0
-            ;;
-        info )
+
+        info)
+            initialize || return 1
             source "scripts/info.sh"
             return 0
             ;;
-        * )
+        *)
             printf "panda-manager: invalid argument %s\n" "$*"
             return 0
             ;;
