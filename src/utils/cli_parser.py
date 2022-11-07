@@ -1,5 +1,4 @@
 from enum import Enum
-from mmap import MAP_SHARED
 from sys import exit
 
 
@@ -21,13 +20,23 @@ class Cli_Parser():
                                         has not already been removed.
         """
 
-        self.__arg_dict = arg_dict.copy()
-        self.__arg_string = arg_string
-        self.__prefix = prefix
-        self.__seperator = seperator
+        self.__arg_dict = arg_dict.copy()   # Valid possible arguments
+        self.__arg_string = arg_string      # CLI-arguments to parse
+        self.__prefix = prefix              # Characters to signify an option
+        self.__seperator = seperator        # Argument character delimiter
         self.__regard_filename = regard_filename
 
     def get_arg_dict(self):
+        """Gets the dictionary stored in a Cli_parser object
+
+        Use this function to return the dictionary with stored argument values.
+        
+        Example:
+            Get hostname: parser.get_arg_dict()["--host"]
+
+        Returns:
+            dict: Data structure where arguments' values are stored
+        """
         return self.__arg_dict
 
     def join_invalid_args(self, args: str, seperator: str) -> None:
@@ -65,7 +74,6 @@ class Cli_Parser():
         """
         self.__arg_dict[keypair[0]] = keypair[1]
 
-
     def validate_args(self) -> None:
         """Validate command line arguments. Output stderr if an argument is invalid.
 
@@ -90,4 +98,3 @@ class Cli_Parser():
 
             # assign command line arguments to fields in the Http_Options struct
             self.map_args(keyword)
-            
