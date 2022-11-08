@@ -35,7 +35,8 @@ def main(argc: int, argv: str):
     server = HttpServer(
         host=parser.get_arg_dict()["--host"],       # Hostname
         port=int(parser.get_arg_dict()["--port"]),  # Port number
-        concurrent_clients=int(parser.get_arg_dict()["--concurrent_clients"]) # Number of concurrent clients
+        # Number of concurrent clients
+        concurrent_clients=int(parser.get_arg_dict()["--concurrent_clients"])
     )
 
     server.create_socket(1, True)   # Create new socket
