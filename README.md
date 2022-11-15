@@ -32,25 +32,7 @@ sudo apt install curl git python3 python3-pip python3-venv nodejs
     git clone https://github.com/asiangoldfish/PandaServer.git
     cd PandaServer/
     ```
-- To enable live reload, Panda Server depends on Nodemon. Panda-manager by default requires Nodemon globally installed, however the script can be tweaked to support Nodemon locally installed in the project directory.
 
-    - Globally install Nodemon:
-        ```
-        npm -i -g nodemon
-        ```
-
-    - Locally install Nodemon:
-        ```
-        npm install
-        ```
-        Use your text editor of choice and search for a line that says: 
-        ```
-        nodemon server.py ${port}
-        ```
-        Change this line to the following:
-        ```
-        npx nodemon server.py ${port}
-        ```
 - In order to use `panda-manager`, the command must be prefixed with *bash*, i.e bash panda-manager. To use the command without the prefix, add it to PATH. Environment variables may reside in different locations. This guideline suggests .bash_alias, although other files like .bashrc can be used
     - Create a file named .bash_alias in your home directory if does not already exist
     - Use the following lines of commands, assigning the project's full path to the variable `path` and replacing .bash_alias with your preferred file:
@@ -62,10 +44,7 @@ sudo apt install curl git python3 python3-pip python3-venv nodejs
         echo "PATH=$PATH:${path}" >> $HOME/.bash_aliases
         source $HOME/.bash_aliases
         ```
-- `panda-manager` can now be fully utilized! Use it to install dependencies. When prompted, enter Y
-```
-panda-manager --download modules
-```
+
 - Use `panda-manager` to launch the server
 ```
 panda-manager --start
