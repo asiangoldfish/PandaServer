@@ -15,9 +15,15 @@ from sys import exit as sysexit
 
 
 class HttpServer:
-
     def __init__(self, host: str = "localhost", port: int = 8080, concurrent_clients: int = 5) -> None:
-        """Initialize server
+        """HTTP server
+
+        Optionally pass server info to change its behaviour.
+
+        Args:
+            host (str, optional): Server hostname. Defaults to "localhost".
+            port (int, optional): Server postnumber. Defaults to 8080.
+            concurrent_clients (int, optional): Max number of concurrent clients. Defaults to 5.
         """
 
         # Default server settings
@@ -31,6 +37,12 @@ class HttpServer:
         self.server_socket = None
 
     def create_socket(self, blocking: int = 1, reusable: bool = 0):
+        """Create new socket
+
+        Args:
+            blocking (int, optional): Whether to set blocking [0/1]. Defaults to 1.
+            reusable (bool, optional): Whether to release the socket after closing the server. Defaults to 0.
+        """
         try:
             new_socket = socket.socket(
                 socket.AF_INET, socket.SOCK_STREAM)
@@ -49,9 +61,14 @@ class HttpServer:
         self.server_socket = new_socket
 
     def bind_socket(self):
+        """Bind socket to host and port
+        """
+
+        # Return if the no socket exist
         if self.server_socket is None:
             sysexit("There are no sockets assigned to this object.")
 
+        # Attempt to bind the socket
         try:
             self.server_socket.bind((self.host, self.port))
             printc("Binding socket to host and port success!", "ok")
@@ -66,6 +83,8 @@ class HttpServer:
             sysexit()
 
     def listen_socket(self):
+        """Sets the server to listen to clients
+        """
         self.server_socket.listen(self.concurrent_clients)
 
         # Print message on where the server is listening on
@@ -73,10 +92,10 @@ class HttpServer:
             f"\nSocket is listening on port {self.port}...\nGo to http://localhost:{self.port} to open website.")
 
     def loop(self):
+        """Main loop
 
-        some_string = str()
-
-        # Main loop
+        This function loops indefinitely and handles incoming requests
+        """
         while True:
             try:
                 client_socket, address = self.server_socket.accept()
