@@ -10,6 +10,10 @@ version="1.0.0"
 SCRIPT_PATH="$(dirname "$0")" # The path to this script
 INIPARSER="$SCRIPT_PATH/src/utils/ini_parser.py"
 
+
+source "scripts/info.sh"
+source "scripts/start.sh"
+
 ####
 # Activate python virtual environment
 function activate_venv() {
@@ -95,14 +99,12 @@ function main() {
         start)
             # Checks if the script is run from within the project directory
             initialize || return 1
-            source "scripts/start.sh"
             start_main "$@"
             return 0
             ;;
 
         info)
             initialize || return 1
-            source "scripts/info.sh"
             return 0
             ;;
         *)
