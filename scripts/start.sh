@@ -46,9 +46,6 @@ takes optional arguments.
 Arguments:
     -b, --browser [VALUE]   right after --start, enter a browser name and open
                             a new tab in it.
-    -p, --port [VALUE]      open another the server in another port. This
-                            option will override any port settings in the 
-                            settings.ini config file.
     -l, --live-reload       enable live reload. Disabled by default.
 
 For more about the command in detail, visit the documentation at
@@ -87,9 +84,7 @@ function start_main() {
     # Runs through each argument passed and checks for flags and value accordingly
     # Default values
     browser=""
-    port="$("$INIPARSER" --file settings.ini --value --section Default --key port)"
     live_reload="false"
-    host="localhost"
 
     # The loop will break if no commands was passed or the command does not start with the sign -
     while ! [[ ${2} == "" ]] && [[ ${2:0:1} == "-" ]]; do
@@ -97,20 +92,6 @@ function start_main() {
         "-b" | "--browser")
             if ! [[ $3 == "" ]]; then
                 browser="${3}"
-            fi
-            ;;
-        "-p" | "--port")
-            if ! [[ $3 == "" ]]; then
-                port="${3}"
-            else
-                # Interrupts program because port was specified but not passed
-                echo "Missing port number"
-                return 1
-            fi
-            ;;
-        "-h" | "--host")
-            if ! [[ $3 == "" ]]; then
-                host="${3}"
             fi
             ;;
         "-l" | "--live-reload")
@@ -124,7 +105,6 @@ function start_main() {
         shift
     done
 
-    verify_portnum "$port" # Port number is between 1 and 65536
     launch_browser "$browser"
     launch_server "$live_reload"
 }

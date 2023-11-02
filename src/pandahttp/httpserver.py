@@ -91,7 +91,7 @@ class HttpServer:
         print(
             f"\nSocket is listening on port {self.port}...\nGo to http://localhost:{self.port} to open website.")
 
-    def loop(self):
+    def main_loop(self):
         """Main loop
 
         This function loops indefinitely and handles incoming requests
