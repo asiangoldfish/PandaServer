@@ -5,8 +5,7 @@
 ## **Links**
 - [What is Panda Server](#what-is-panda-server)
 - [Run your own Panda Server](#run-your-own-pandaserver)
-- [How it works](#how-it-works)
-- [Error Codes](/docs/errors.md)
+- [Configuration](#configuration)
 - [Useful Resources](#useful-resources)
 
 ## What Is Panda Server
