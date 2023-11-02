@@ -25,7 +25,6 @@ function launch_server() {
     if [[ $live_reload == "true" ]]; then
         # Checks if nodemon is globally installed
         verify_cmd "entr" || return 1
-        # nodemon server.py "$port"
         # ls -I "venv" -I "__pycache__" "$SCRIPT_PATH"/*
         find "$PWD" -name ".*" -prune -o -print | entr -r python "src/main.py" "--port=$port"
     else

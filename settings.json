@@ -5,6 +5,8 @@
     "clear_terminal": false,
     "location": "src",
     "concurrent_users": 10,
+    "root": "/opt/PandaServer/templates",
+    "default_file": "index.html",
 
     "developer": {
         "log_client_address": false,
