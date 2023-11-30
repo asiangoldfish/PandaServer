@@ -4,7 +4,7 @@
     "header_size": 10,
     "clear_terminal": false,
     "concurrent_users": 10,
-    "root": "/opt/PandaServer/templates",
+    "root": "templates",
     "default_file": "index.html",
 
     "developer": {

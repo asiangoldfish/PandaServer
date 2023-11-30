@@ -4,7 +4,12 @@ function launch_browser() {
     browser="$1" # Browser to launch    # Opens browser if appropriate argument is passed
     if ! [[ ${browser} == "" ]]; then
         # Checks if command is available
-        command -v "${browser}" &>/dev/null || (verify_cmd "${browser}" && exit 1)
+        if ! command -v "${browser}" &>/dev/null; then
+            echo "Browser '${browser}' was not found"
+            echo "Please install it or try another browser. Note that panda-manager requires the application's terminal commmand."
+            exit 1
+        fi
+
         # Run the browser
         ${browser} http://"${host}":"${port}" >/dev/null 2>&1
     fi
@@ -18,13 +23,19 @@ function launch_browser() {
     fi
 }
 
-function launch_server() { 
+function launch_server() {
     local live_reload="$1" # Whether to activate live reload server
 
     # Enables live-reload if enabled
     if [[ $live_reload == "true" ]]; then
         # Checks if nodemon is globally installed
-        verify_cmd "entr" || return 1
+        if ! command -v "entr"; then
+            echo "Command 'entr' was not found."
+            echo "It is either not installed or not in PATH."
+            echo "The live reload feature requires 'entr' installed on the system."
+            return 1
+        fi
+
         # ls -I "venv" -I "__pycache__" "$SCRIPT_PATH"/*
         find "$PWD" -name ".*" -prune -o -print | entr -r python "src/main.py" "--port=$port"
     else

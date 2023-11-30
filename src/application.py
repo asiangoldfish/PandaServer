@@ -20,14 +20,17 @@ class Application:
             with open("settings.json", "r") as file:
                 json_config = file.read().replace("\n", "")
         except FileNotFoundError:
-            print("Unable to find the configuration file. It should be named settings.json", file=stderr)
+            print(
+                "Unable to find the configuration file. It should be named settings.json",
+                file=stderr,
+            )
         self.config = json.loads(json_config)
 
         # Server object
         self.http_server = HttpServer(
             self.config["host"],
             int(self.config["port"]),
-            int(self.config["concurrent_users"])
+            int(self.config["concurrent_users"]),
         )
 
         self.http_server.create_socket(1, True)  # Create new socket
@@ -35,11 +38,10 @@ class Application:
         self.http_server.listen_socket()  # Listen for HTTP requests
 
     def run(self):
-
         while True:
             try:
                 client_socket, address = self.http_server.server_socket.accept()
-                #print(f"\nReceived connection from {address}", end="\n\n")
+                # print(f"\nReceived connection from {address}", end="\n\n")
 
             except KeyboardInterrupt:
                 printc("\nSuccessfully terminated the program.", "ok")
@@ -60,7 +62,7 @@ class Application:
                 client_socket.close()
                 continue
 
-            #terminal.printc(client_request, "warning")
+            # terminal.printc(client_request, "warning")
             request_string = client_request.split(" ")  # Split request from client
 
             # First element is the request method
@@ -81,7 +83,9 @@ class Application:
                     file_name = self.config["default_file"]
                 except KeyError:
                     # If page is not found
-                    print(f"Configuration in settings.json for 'defaul_fil' does not exist. It is an invalid key.")
+                    print(
+                        f"Configuration in settings.json for 'defaul_fil' does not exist. It is an invalid key."
+                    )
                     header = "HTTP/1.1 404 Not Found \n\n"
                     response = "<html>\
                                     <body>\
@@ -90,7 +94,9 @@ class Application:
                                         <p>Python HTTP Server<p>\
                                         </center>\
                                     </body>\
-                                </html>".encode("utf-8")
+                                </html>".encode(
+                        "utf-8"
+                    )
 
                     # Respond to client and close socket
                     final_response = header.encode("utf-8")
@@ -108,7 +114,9 @@ class Application:
             # Respond with the requested file. Catch error if file non-existent
             src_dir = self.config["root"]
             try:
-                file = open("%s" % (f"{src_dir}/{file_name}"), 'rb')  # 'rb' = read binary
+                file = open(
+                    "%s" % (f"{src_dir}/{file_name}"), "rb"
+                )  # 'rb' = read binary
                 response = response = file.read()
                 file.close()
 
@@ -136,7 +144,9 @@ class Application:
                                     <p>Python HTTP Server<p>\
                                     </center>\
                                 </body>\
-                            </html>".encode("utf-8")
+                            </html>".encode(
+                    "utf-8"
+                )
 
             # Respond to client and close socket
             final_response = header.encode("utf-8")
