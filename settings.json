@@ -1,0 +1,23 @@
+{
+    "host": "localhost",
+    "port": 8080,
+    "header_size": 10,
+    "clear_terminal": false,
+    "concurrent_users": 10,
+    "root": "templates",
+    "default_file": "index.html",
+
+    "developer": {
+        "log_client_address": false,
+        "log_client_socket": false,
+        "log_client_request": true
+    },
+    "database": {
+        "use_db": false,
+        "auto_login": true,
+        "host": "localhost",
+        "user": "test_user",
+        "password": "test_user123",
+        "database": "panda"
+    }
+}

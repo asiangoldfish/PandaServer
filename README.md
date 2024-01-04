@@ -5,8 +5,7 @@
 ## **Links**
 - [What is Panda Server](#what-is-panda-server)
 - [Run your own Panda Server](#run-your-own-pandaserver)
-- [How it works](#how-it-works)
-- [Error Codes](/docs/errors.md)
+- [Configuration](#configuration)
 - [Useful Resources](#useful-resources)
 
 ## What Is Panda Server
@@ -33,32 +32,30 @@ sudo apt install curl git python3 python3-pip python3-venv nodejs
     cd PandaServer/
     ```
 
-- In order to use `panda-manager`, the command must be prefixed with *bash*, i.e bash panda-manager. To use the command without the prefix, add it to PATH. Environment variables may reside in different locations. This guideline suggests .bash_alias, although other files like .bashrc can be used
-    - Create a file named .bash_alias in your home directory if does not already exist
-    - Use the following lines of commands, assigning the project's full path to the variable `path` and replacing .bash_alias with your preferred file:
-        ```
-        chmod +x panda-manager
-        path="full/path/to/PandaServer/"
-        echo "" >> $HOME/.bash_aliases
-        echo "# Panda Server" >> $HOME/.bash_aliases
-        echo "PATH=$PATH:${path}" >> $HOME/.bash_aliases
-        source $HOME/.bash_aliases
-        ```
+- Create and activate virtual environment
+    ```
+    python -m venv venv
+    source venv/bin/activate
+    ```
 
-- Use `panda-manager` to launch the server
-```
-panda-manager --start
-```
-To customize the server settings, you can change values in the configuration file *settings.ini*. Click [here](./docs/config.md) to read the documentation for this file.
-To read the documentation for `panda-manager`, click [here](./docs/panda_manager.md)
-
-Happy hacking! :)
+- Start the server
+    ```
+    python3 src/main.py
+    ```
 
 ---
 
-## How it works
+## Configuration
+Configuration is performed in [settings.json](settings.json). Note: Any other configurations are currently not in use or
+in development.
 
-As mentioned earlier, the project includes a utility command `panda_module`. 
+| name | default value | description |
+|:-----|:--------------|:------------|
+| host | localhost | The hostname or IP address that the user can connect to the server with |
+| port | 8080 | Port number to open an expose the web engine to |
+| clear_terminal | false | Clear the terminal before starting the server. This hides previously printed outputs |
+| root | /opt/PandaServer/templates | Default location for static files |
+| default_file | index.html | If the user does not provide files in the URI, eg. _http://localhost:8080/_, the default file will be served. |
 
 ## Useful Resources
 - Handling HTTP requests: [Stack Overflow](https://stackoverflow.com/questions/41386086/handling-client-requests-in-http-server)

@@ -10,6 +10,8 @@ version="1.0.0"
 SCRIPT_PATH="$(dirname "$0")" # The path to this script
 INIPARSER="$SCRIPT_PATH/src/utils/ini_parser.py"
 
+source "scripts/start.sh"
+
 ####
 # Activate python virtual environment
 function activate_venv() {
@@ -42,7 +44,7 @@ function initialize() {
 ####
 function usage() (
     echo "Usage: panda-manager [OPTION] [...args]
-    
+
 Utility tool for managing the Panda Server. Some commands require the script
 to be run from within the project directory. These particular commands will run
 checks if required.
@@ -51,7 +53,6 @@ Options:
     help, --help            help page for the Panda Server project
     version, --version      project version
     start [args]            launch the Panda Server
-    info [args]             additional info about the project
 
 Commands may have sub-commands. To learn more about these, append the --help flag.
 Example: panda-manager --start --help
@@ -90,19 +91,12 @@ function main() {
         --version | version)
             echo "${version}"
             return 0
-            ;;
+           ;;
 
         start)
             # Checks if the script is run from within the project directory
             initialize || return 1
-            source "scripts/start.sh"
             start_main "$@"
-            return 0
-            ;;
-
-        info)
-            initialize || return 1
-            source "scripts/info.sh"
             return 0
             ;;
         *)

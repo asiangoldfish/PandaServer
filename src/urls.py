@@ -1,4 +1,0 @@
-urlpatterns = {
-    "templates": ["index.html", ]
-
-}

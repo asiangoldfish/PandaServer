@@ -4,7 +4,12 @@ function launch_browser() {
     browser="$1" # Browser to launch    # Opens browser if appropriate argument is passed
     if ! [[ ${browser} == "" ]]; then
         # Checks if command is available
-        command -v "${browser}" &>/dev/null || (verify_cmd "${browser}" && exit 1)
+        if ! command -v "${browser}" &>/dev/null; then
+            echo "Browser '${browser}' was not found"
+            echo "Please install it or try another browser. Note that panda-manager requires the application's terminal commmand."
+            exit 1
+        fi
+
         # Run the browser
         ${browser} http://"${host}":"${port}" >/dev/null 2>&1
     fi
@@ -18,14 +23,19 @@ function launch_browser() {
     fi
 }
 
-function launch_server() { 
+function launch_server() {
     local live_reload="$1" # Whether to activate live reload server
 
     # Enables live-reload if enabled
     if [[ $live_reload == "true" ]]; then
         # Checks if nodemon is globally installed
-        verify_cmd "entr" || return 1
-        # nodemon server.py "$port"
+        if ! command -v "entr"; then
+            echo "Command 'entr' was not found."
+            echo "It is either not installed or not in PATH."
+            echo "The live reload feature requires 'entr' installed on the system."
+            return 1
+        fi
+
         # ls -I "venv" -I "__pycache__" "$SCRIPT_PATH"/*
         find "$PWD" -name ".*" -prune -o -print | entr -r python "src/main.py" "--port=$port"
     else
@@ -46,9 +56,6 @@ takes optional arguments.
 Arguments:
     -b, --browser [VALUE]   right after --start, enter a browser name and open
                             a new tab in it.
-    -p, --port [VALUE]      open another the server in another port. This
-                            option will override any port settings in the 
-                            settings.ini config file.
     -l, --live-reload       enable live reload. Disabled by default.
 
 For more about the command in detail, visit the documentation at
@@ -87,9 +94,7 @@ function start_main() {
     # Runs through each argument passed and checks for flags and value accordingly
     # Default values
     browser=""
-    port="$("$INIPARSER" --file settings.ini --value --section Default --key port)"
     live_reload="false"
-    host="localhost"
 
     # The loop will break if no commands was passed or the command does not start with the sign -
     while ! [[ ${2} == "" ]] && [[ ${2:0:1} == "-" ]]; do
@@ -97,20 +102,6 @@ function start_main() {
         "-b" | "--browser")
             if ! [[ $3 == "" ]]; then
                 browser="${3}"
-            fi
-            ;;
-        "-p" | "--port")
-            if ! [[ $3 == "" ]]; then
-                port="${3}"
-            else
-                # Interrupts program because port was specified but not passed
-                echo "Missing port number"
-                return 1
-            fi
-            ;;
-        "-h" | "--host")
-            if ! [[ $3 == "" ]]; then
-                host="${3}"
             fi
             ;;
         "-l" | "--live-reload")
@@ -124,7 +115,6 @@ function start_main() {
         shift
     done
 
-    verify_portnum "$port" # Port number is between 1 and 65536
     launch_browser "$browser"
     launch_server "$live_reload"
 }

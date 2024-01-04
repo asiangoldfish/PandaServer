@@ -91,24 +91,7 @@ class HttpServer:
         print(
             f"\nSocket is listening on port {self.port}...\nGo to http://localhost:{self.port} to open website.")
 
-    def loop(self):
-        """Main loop
-
-        This function loops indefinitely and handles incoming requests
-        """
-        while True:
-            try:
-                client_socket, address = self.server_socket.accept()
-            except KeyboardInterrupt:
-                printc("\nSuccessfully terminated the program.", "ok")
-                exit()
-            except socket.error as msg:
-                print("%s" % (msg,))
-            except Exception as e:
-                print(e)
-                sysexit()
-
-    def request_handle(request: str) -> str:
+    def request_handle(self, request: str) -> str:
         """Processes requests and handle them.
 
         Process requests and return a HTTP response code and header.
@@ -121,7 +104,7 @@ class HttpServer:
         """
         pass
 
-    def request_ok() -> str:
+    def request_ok(self) -> str:
         """Received request from client is ok.
 
         Returns:
